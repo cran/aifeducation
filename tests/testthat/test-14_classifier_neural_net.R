@@ -1,12 +1,56 @@
 testthat::skip_if_not(condition=check_aif_py_modules(trace = FALSE),
                       message  = "Necessary python modules not available")
 
+if(aifeducation_config$global_framework_set()==FALSE){
+  aifeducation_config$set_global_ml_backend("tensorflow")
+}
+
+aifeducation::set_config_gpu_low_memory()
+set_config_tf_logger("ERROR")
+set_config_os_environ_logger("ERROR")
+
 path="test_data/classifier/bert_embeddings.rda"
 testthat::skip_if_not(condition=file.exists(testthat::test_path(path)),
                       message  = "Necessary dataset not available")
 
-if(dir.exists(testthat::test_path("tmp_full_models"))==FALSE){
-  dir.create(testthat::test_path("tmp_full_models"))
+if(dir.exists(testthat::test_path("test_artefacts"))==FALSE){
+  dir.create(testthat::test_path("test_artefacts"))
+}
+
+if(dir.exists(testthat::test_path("test_artefacts/tmp_full_models"))==FALSE){
+  dir.create(testthat::test_path("test_artefacts/tmp_full_models"))
+}
+
+if(dir.exists(testthat::test_path("test_artefacts/classifier"))==FALSE){
+  dir.create(testthat::test_path("test_artefacts/classifier"))
+}
+
+if(dir.exists(testthat::test_path("test_artefacts/tmp"))==FALSE){
+  dir.create(testthat::test_path("test_artefacts/tmp"))
+}
+
+if(dir.exists(testthat::test_path("test_artefacts/tmp/2_classes"))==FALSE){
+  dir.create(testthat::test_path("test_artefacts/tmp/2_classes"))
+}
+
+if(dir.exists(testthat::test_path("test_artefacts/tmp/3_classes"))==FALSE){
+  dir.create(testthat::test_path("test_artefacts/tmp/3_classes"))
+}
+
+if(dir.exists(testthat::test_path("test_artefacts/tmp_full_models_keras"))==FALSE){
+  dir.create(testthat::test_path("test_artefacts/tmp_full_models_keras"))
+}
+
+if(dir.exists(testthat::test_path("test_artefacts/tmp_keras"))==FALSE){
+  dir.create(testthat::test_path("test_artefacts/tmp_keras"))
+}
+
+if(dir.exists(testthat::test_path("test_artefacts/tmp_keras/2_classes"))==FALSE){
+  dir.create(testthat::test_path("test_artefacts/tmp_keras/2_classes"))
+}
+
+if(dir.exists(testthat::test_path("test_artefacts/tmp_keras/3_classes"))==FALSE){
+  dir.create(testthat::test_path("test_artefacts/tmp_keras/3_classes"))
 }
 
 #-------------------------------------------------------------------------------
@@ -32,12 +76,14 @@ for (n_classes in 2:3){
   example_targets<-as.factor(example_data$label)
   names(example_targets)=example_data$id
 
+  ml_framework="tensorflow"
 
   #-------------------------------------------------------------------------------
 
-  test_that(paste("creation_classifier_neural_net","n_classes",n_classes), {
+  test_that(paste(ml_framework,"creation_classifier_neural_net","n_classes",n_classes), {
     classifier<-NULL
     classifier<-TextEmbeddingClassifierNeuralNet$new(
+      ml_framework = ml_framework,
       name="movie_review_classifier",
       label="Classifier for Estimating a Postive or Negative Rating of Movie Reviews",
       text_embeddings=current_embeddings,
@@ -56,6 +102,7 @@ for (n_classes in 2:3){
 
     classifier<-NULL
     classifier<-TextEmbeddingClassifierNeuralNet$new(
+      ml_framework = ml_framework,
       name="movie_review_classifier",
       label="Classifier for Estimating a Postive or Negative Rating of Movie Reviews",
       text_embeddings=current_embeddings,
@@ -73,6 +120,7 @@ for (n_classes in 2:3){
 
     classifier<-NULL
     classifier<-TextEmbeddingClassifierNeuralNet$new(
+      ml_framework = ml_framework,
       name="movie_review_classifier",
       label="Classifier for Estimating a Postive or Negative Rating of Movie Reviews",
       text_embeddings=current_embeddings,
@@ -91,6 +139,7 @@ for (n_classes in 2:3){
 
     classifier<-NULL
     classifier<-TextEmbeddingClassifierNeuralNet$new(
+      ml_framework = ml_framework,
       name="movie_review_classifier",
       label="Classifier for Estimating a Postive or Negative Rating of Movie Reviews",
       text_embeddings=current_embeddings,
@@ -109,6 +158,7 @@ for (n_classes in 2:3){
 
     classifier<-NULL
     classifier<-TextEmbeddingClassifierNeuralNet$new(
+      ml_framework = ml_framework,
       name="movie_review_classifier",
       label="Classifier for Estimating a Postive or Negative Rating of Movie Reviews",
       text_embeddings=current_embeddings,
@@ -124,17 +174,20 @@ for (n_classes in 2:3){
       rec_act_fct="tanh")
     expect_s3_class(classifier,
                     class="TextEmbeddingClassifierNeuralNet")
+
+    expect_false(classifier$get_sustainability_data()$sustainability_tracked)
   })
 
-
   #-------------------------------------------------------------------------------
+  classifier<-NULL
   classifier<-TextEmbeddingClassifierNeuralNet$new(
-    name="movie_review_classifier",
+    ml_framework = ml_framework,
+    name=paste0("movie_review_classifier_","classes_",n_classes),
     label="Classifier for Estimating a Postive or Negative Rating of Movie Reviews",
     text_embeddings=current_embeddings,
     targets=example_targets,
     hidden=NULL,
-    rec=c(28,28),
+    rec=c(3,3),
     self_attention_heads = 0,
     dropout=0.2,
     recurrent_dropout=0.4,
@@ -143,7 +196,8 @@ for (n_classes in 2:3){
     act_fct="gelu",
     rec_act_fct="tanh")
 
-  test_that(paste("training_baseline_only","n_classes",n_classes), {
+  base::gc(verbose = FALSE,full = TRUE)
+  test_that(paste(ml_framework,"training_baseline_only","n_classes",n_classes), {
     expect_no_error(
       classifier$train(
         data_embeddings = current_embeddings,
@@ -169,15 +223,19 @@ for (n_classes in 2:3){
         sustain_track=TRUE,
         sustain_iso_code = "DEU",
         epochs=2,
-        batch_size=32,
-        dir_checkpoint=testthat::test_path("test_data/classifier"),
+        batch_size=4,
+        dir_checkpoint=testthat::test_path("test_artefacts/classifier"),
         trace=FALSE,
         keras_trace=0,
         n_cores=1)
     )
+
+    expect_true(classifier$get_sustainability_data()$sustainability_tracked)
+
   })
 
-  test_that(paste("training_bsc_only","n_classes",n_classes), {
+  base::gc(verbose = FALSE,full = TRUE)
+  test_that(paste(ml_framework,"training_bsc_only","n_classes",n_classes), {
     expect_no_error(
       classifier$train(
         data_embeddings = current_embeddings,
@@ -201,8 +259,8 @@ for (n_classes in 2:3){
         bpl_weight_start=0.00,
         bpl_model_reset=FALSE,
         epochs=2,
-        batch_size=32,
-        dir_checkpoint=testthat::test_path("test_data/classifier"),
+        batch_size=4,
+        dir_checkpoint=testthat::test_path("test_artefacts/classifier"),
         sustain_track=FALSE,
         sustain_iso_code = "DEU",
         sustain_region = NULL,
@@ -211,9 +269,12 @@ for (n_classes in 2:3){
         keras_trace=0,
         n_cores=1)
     )
+
+    expect_false(classifier$get_sustainability_data()$sustainability_tracked)
   })
 
-  test_that(paste("training_pbl_baseline","n_classes",n_classes), {
+  base::gc(verbose = FALSE,full = TRUE)
+  test_that(paste(ml_framework,"training_pbl_baseline","n_classes",n_classes), {
     expect_no_error(
       classifier$train(
         data_embeddings = current_embeddings,
@@ -237,8 +298,8 @@ for (n_classes in 2:3){
         bpl_weight_start=0.00,
         bpl_model_reset=FALSE,
         epochs=2,
-        batch_size=32,
-        dir_checkpoint=testthat::test_path("test_data/classifier"),
+        batch_size=4,
+        dir_checkpoint=testthat::test_path("test_artefacts/classifier"),
         sustain_track=FALSE,
         sustain_iso_code = "DEU",
         sustain_region = NULL,
@@ -249,7 +310,8 @@ for (n_classes in 2:3){
     )
   })
 
-  test_that(paste("training_pbl_bsc","n_classes",n_classes), {
+  base::gc(verbose = FALSE,full = TRUE)
+  test_that(paste(ml_framework,"training_pbl_bsc","n_classes",n_classes), {
     expect_no_error(
       classifier$train(
         data_embeddings = current_embeddings,
@@ -273,8 +335,8 @@ for (n_classes in 2:3){
         bpl_weight_start=0.00,
         bpl_model_reset=FALSE,
         epochs=2,
-        batch_size=32,
-        dir_checkpoint=testthat::test_path("test_data/classifier"),
+        batch_size=4,
+        dir_checkpoint=testthat::test_path("test_artefacts/classifier"),
         sustain_track=FALSE,
         sustain_iso_code = "DEU",
         sustain_region = NULL,
@@ -286,35 +348,63 @@ for (n_classes in 2:3){
   })
 }
 
-test_that("Saving Classifier H5",{
+base::gc(verbose = FALSE,full = TRUE)
+test_that(paste(ml_framework,"Saving Classifier Keras_V3"),{
   expect_no_error(classifier$save_model(
-    testthat::test_path("tmp"),
+    testthat::test_path(paste0("test_artefacts/tmp_keras/",n_classes,"_classes")),
+    save_format = "keras")
+  )
+})
+
+base::gc(verbose = FALSE,full = TRUE)
+test_that(paste(ml_framework,"Loading Classifier Keras_V3"),{
+  expect_no_error(
+    classifier$load_model(
+      ml_framework="tensorflow",
+      dir_path=testthat::test_path(paste0("test_artefacts/tmp_keras/",n_classes,"_classes")))
+  )
+})
+
+base::gc(verbose = FALSE,full = TRUE)
+test_that(paste(ml_framework,"Saving Classifier H5"),{
+  expect_no_error(classifier$save_model(
+    testthat::test_path(paste0("test_artefacts/tmp/",n_classes,"_classes")),
     save_format = "h5")
   )
 })
 
-test_that("Loading Classifier H5",{
+base::gc(verbose = FALSE,full = TRUE)
+test_that(paste(ml_framework,"Loading Classifier H5"),{
   expect_no_error(
     classifier$load_model(
-      testthat::test_path("tmp"))
+      ml_framework="tensorflow",
+      dir_path=testthat::test_path(paste0("test_artefacts/tmp/",n_classes,"_classes")))
   )
 })
 
-test_that("Saving Classifier TF",{
+#------------------------------------------------------------------------------
+base::gc(verbose = FALSE,full = TRUE)
+
+test_that(paste(ml_framework,"Saving Classifier TF"),{
   expect_no_error(classifier$save_model(
-    testthat::test_path("tmp"),
+    testthat::test_path(paste0("test_artefacts/tmp/",n_classes,"_classes")),
     save_format = "tf")
   )
 })
 
-test_that("Loading Classifier TF",{
+base::gc(verbose = FALSE,full = TRUE)
+
+test_that(paste(ml_framework,"Loading Classifier TF"),{
   expect_no_error(
     classifier$load_model(
-      testthat::test_path("tmp"))
+      ml_framework="tensorflow",
+      dir_path=testthat::test_path(paste0("test_artefacts/tmp/",n_classes,"_classes")))
   )
 })
+#------------------------------------------------------------------------------
 
-test_that("prediction", {
+base::gc(verbose = FALSE,full = TRUE)
+test_that(paste(ml_framework,"prediction"), {
   prediction<-classifier$predict(newdata = current_embeddings,
                                  batch_size = 2,
                                  verbose = 0)
@@ -323,7 +413,8 @@ test_that("prediction", {
 
 })
 
-test_that("prediction_single_case", {
+base::gc(verbose = FALSE,full = TRUE)
+test_that(paste(ml_framework,"prediction_single_case"), {
   single_embedding<-current_embeddings$clone(deep = TRUE)
   single_embedding$embeddings<-single_embedding$embeddings[1,,,drop=FALSE]
   prediction<-classifier$predict(newdata = single_embedding,
@@ -333,7 +424,7 @@ test_that("prediction_single_case", {
                expected = 1)
 })
 
-test_that("descriptions", {
+test_that(paste(ml_framework,"descriptions"), {
   classifier$set_model_description(
     eng = "Description",
     native = "Beschreibung",
@@ -369,7 +460,7 @@ test_that("descriptions", {
   )
 })
 
-test_that("software_license", {
+test_that(paste(ml_framework,"software_license"), {
   classifier$set_software_license("test_license")
   expect_equal(
     object=classifier$get_software_license(),
@@ -377,7 +468,7 @@ test_that("software_license", {
   )
 })
 
-test_that("documentation_license", {
+test_that(paste(ml_framework,"documentation_license"), {
   classifier$set_documentation_license("test_license")
   expect_equal(
     object=classifier$get_documentation_license(),
@@ -385,7 +476,7 @@ test_that("documentation_license", {
   )
 })
 
-test_that("publication_info",{
+test_that(paste(ml_framework,"publication_info"),{
   classifier$set_publication_info(
     authors = personList(
       person(given="Max",family="Mustermann")
@@ -412,59 +503,117 @@ test_that("publication_info",{
   )
 })
 
-test_that("Classifier Save Total Model H5", {
+base::gc(verbose = FALSE,full = TRUE)
+test_that(paste(ml_framework,"Classifier Save Total Model keras_V3 without ID"), {
   expect_no_error(
     save_ai_model(model=classifier,
-                  model_dir = testthat::test_path("tmp_full_models"),
+                  model_dir = testthat::test_path("test_artefacts/tmp_full_models_keras"),
+                  save_format = "keras",
+                  append_ID = FALSE)
+  )
+})
+
+base::gc(verbose = FALSE,full = TRUE)
+test_that(paste(ml_framework,"Classifier Load Total Model keras_V3 without ID"), {
+  new_classifier<-NULL
+  new_classifier<-load_ai_model(
+    ml_framework="tensorflow",
+    model_dir = testthat::test_path(paste0("test_artefacts/tmp_full_models_keras/",classifier$get_model_info()$model_name_root))
+  )
+  expect_s3_class(new_classifier,
+                  class="TextEmbeddingClassifierNeuralNet")
+})
+
+base::gc(verbose = FALSE,full = TRUE)
+test_that(paste(ml_framework,"Classifier Save Total Model keras_V3"), {
+  expect_no_error(
+    save_ai_model(model=classifier,
+                  model_dir = testthat::test_path("test_artefacts/tmp_full_models_keras"),
+                  save_format = "keras")
+  )
+})
+
+base::gc(verbose = FALSE,full = TRUE)
+test_that(paste(ml_framework,"Classifier Load Total Model keras_V3 with ID"), {
+  new_classifier<-NULL
+  new_classifier<-load_ai_model(
+    ml_framework="tensorflow",
+    model_dir = testthat::test_path(paste0("test_artefacts/tmp_full_models_keras/",classifier$get_model_info()$model_name))
+  )
+  expect_s3_class(new_classifier,
+                  class="TextEmbeddingClassifierNeuralNet")
+})
+
+#------------------------------------------------------------------------------
+base::gc(verbose = FALSE,full = TRUE)
+test_that(paste(ml_framework,"Classifier Save Total Model H5"), {
+  expect_no_error(
+    save_ai_model(model=classifier,
+                  model_dir = testthat::test_path("test_artefacts/tmp_full_models"),
                   save_format = "H5")
   )
 })
 
-test_that("Classifier Load Total Model H5", {
+base::gc(verbose = FALSE,full = TRUE)
+test_that(paste(ml_framework,"Classifier Load Total Model H5"), {
   new_classifier<-NULL
   new_classifier<-load_ai_model(
-    model_dir = testthat::test_path(paste0("tmp_full_models/",classifier$get_model_info()$model_name))
+    ml_framework="tensorflow",
+    model_dir = testthat::test_path(paste0("test_artefacts/tmp_full_models/",classifier$get_model_info()$model_name))
   )
   expect_s3_class(new_classifier,
                   class="TextEmbeddingClassifierNeuralNet")
 })
 
-test_that("Classifier Save Total Model TF with ID", {
+#----------------------------------------------------------------------------------
+base::gc(verbose = FALSE,full = TRUE)
+
+test_that(paste(ml_framework,"Classifier Save Total Model TF with ID"), {
+  testthat::skip_on_os("linux")
   expect_no_error(
     save_ai_model(model=classifier,
-                  model_dir = testthat::test_path("tmp_full_models"),
+                  model_dir = testthat::test_path("test_artefacts/tmp_full_models"),
                   save_format = "tf")
   )
 })
+base::gc(verbose = FALSE,full = TRUE)
 
-test_that("Classifier Load Total Model TF with ID", {
+test_that(paste(ml_framework,"Classifier Load Total Model TF with ID"), {
+  testthat::skip_on_os("linux")
   new_classifier<-NULL
   new_classifier<-load_ai_model(
-    model_dir = testthat::test_path(paste0("tmp_full_models/",classifier$get_model_info()$model_name))
+    ml_framework="tensorflow",
+    model_dir = testthat::test_path(paste0("test_artefacts/tmp_full_models/",classifier$get_model_info()$model_name))
   )
   expect_s3_class(new_classifier,
                   class="TextEmbeddingClassifierNeuralNet")
 })
-
-test_that("Classifier Save Total Model TF without ID", {
+#-------------------------------------------------------------------------------
+base::gc(verbose = FALSE,full = TRUE)
+test_that(paste(ml_framework,"Classifier Save Total Model TF without ID"), {
+  testthat::skip_on_os(os="linux")
   expect_no_error(
     save_ai_model(model=classifier,
-                  model_dir = testthat::test_path("tmp_full_models"),
+                  model_dir = testthat::test_path("test_artefacts/tmp_full_models"),
                   save_format = "tf",
                   append_ID=FALSE)
   )
 })
 
-test_that("Classifier Load Total Model TF without ID", {
+base::gc(verbose = FALSE,full = TRUE)
+test_that(paste(ml_framework,"Classifier Load Total Model TF without ID"), {
+  testthat::skip_on_os(os="linux")
   new_classifier<-NULL
   new_classifier<-load_ai_model(
-    model_dir = testthat::test_path(paste0("tmp_full_models/",classifier$get_model_info()$model_name_root))
+    ml_framework="tensorflow",
+    model_dir = testthat::test_path(paste0("test_artefacts/tmp_full_models/",classifier$get_model_info()$model_name_root))
   )
   expect_s3_class(new_classifier,
                   class="TextEmbeddingClassifierNeuralNet")
 })
-
-test_that("Classifier Predict", {
+#------------------------------------------------------------------------------
+base::gc(verbose = FALSE,full = TRUE)
+test_that(paste(ml_framework,"Classifier Predict"), {
   pred<-NULL
   pred<-classifier$predict(
     newdata = current_embeddings,

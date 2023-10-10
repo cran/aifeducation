@@ -4,11 +4,29 @@
 \alias{install_py_modules}
 \title{Installing necessary python modules to an environment}
 \usage{
-install_py_modules(envname = "aifeducation")
+install_py_modules(
+  envname = "aifeducation",
+  tf_version = "<=2.14",
+  pytorch_cuda_version = "12.1",
+  remove_first = FALSE,
+  cpu_only = FALSE
+)
 }
 \arguments{
 \item{envname}{\code{string} Name of the environment where the packages should
 be installed.}
+
+\item{tf_version}{\code{string} determining the desired version of 'tensorflow'.}
+
+\item{pytorch_cuda_version}{\code{string} determining the desired version of 'cuda' for
+'PyTorch'.}
+
+\item{remove_first}{\code{bool} If \code{TRUE} removes the environment completely before
+recreating the environment and installing the packages. If \code{FALSE} the packages
+are installed in the existing environment without any prior changes.}
+
+\item{cpu_only}{\code{bool} \code{TRUE} installs the cpu only version of the
+machine learning frameworks.}
 }
 \value{
 Returns no values or objects. Function is used for installing the
@@ -19,10 +37,13 @@ Function for installing the necessary python modules
 }
 \seealso{
 Other Installation and Configuration: 
+\code{\link{AifeducationConfiguration}},
+\code{\link{aifeducation_config}},
 \code{\link{check_aif_py_modules}()},
 \code{\link{set_config_cpu_only}()},
 \code{\link{set_config_gpu_low_memory}()},
 \code{\link{set_config_os_environ_logger}()},
-\code{\link{set_config_tf_logger}()}
+\code{\link{set_config_tf_logger}()},
+\code{\link{set_transformers_logger}()}
 }
 \concept{Installation and Configuration}

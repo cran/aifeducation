@@ -28,7 +28,6 @@
 #'here: \url{https://universaldependencies.org/u/pos/index.html}.
 #'@note A huge number of models can be found
 #'here: \url{https://ufal.mff.cuni.cz/udpipe/2/models}.
-#'@importFrom udpipe udpipe_load_model udpipe_annotate unique_identifier
 #'@importFrom stats na.omit
 #'@importFrom stringr str_length str_replace_all str_remove_all
 #'@family Preparation
@@ -41,6 +40,9 @@ bow_pp_create_vocab_draft<-function(path_language_model,
                                     chunk_size=100,
                                     trace=TRUE)
 {
+  requireNamespace(package="udpipe")
+  requireNamespace(package="quanteda")
+
   #Phase 1: Analyze Texts with 'udpipe'
   n_document_segments<-length(data)
   n_sentence_init<-0
@@ -183,8 +185,6 @@ bow_pp_create_vocab_draft<-function(path_language_model,
 #'
 #'}
 #'
-#'@importFrom quanteda corpus tokens tokens_replace tokens_remove tokens_tolower
-#'@importFrom quanteda dfm dfm_trim fcm dfm_keep fcm_select
 #'@importFrom stats na.omit
 #'@family Preparation
 #'@export
@@ -207,6 +207,8 @@ bow_pp_create_basic_text_rep<-function(data,
                                       weights = 1 / (1:5),
                                       trace=TRUE)
 {
+  requireNamespace(package="quanteda")
+
   textual_corpus <-quanteda::corpus(data)
   token<-quanteda::tokens(textual_corpus,
                           remove_punct = remove_punct,

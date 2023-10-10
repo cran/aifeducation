@@ -5,16 +5,18 @@
 \title{Function for training and fine-tuning a BERT model}
 \usage{
 train_tune_bert_model(
+  ml_framework = aifeducation_config$get_framework()$TextEmbeddingFramework,
   output_dir,
   model_dir_path,
   raw_texts,
-  aug_vocab_by = 100,
   p_mask = 0.15,
   whole_word = TRUE,
   val_size = 0.1,
   n_epoch = 1,
   batch_size = 12,
   chunk_size = 250,
+  full_sequences_only = FALSE,
+  min_seq_len = 50,
   learning_rate = 0.003,
   n_workers = 1,
   multi_process = FALSE,
@@ -27,6 +29,10 @@ train_tune_bert_model(
 )
 }
 \arguments{
+\item{ml_framework}{\code{string} Framework to use for training and inference.
+\code{ml_framework="tensorflow"} for 'tensorflow' and \code{ml_framework="pytorch"}
+for 'pytorch'.}
+
 \item{output_dir}{\code{string} Path to the directory where the final model
 should be saved. If the directory does not exist, it will be created.}
 
@@ -34,9 +40,6 @@ should be saved. If the directory does not exist, it will be created.}
 model is stored.}
 
 \item{raw_texts}{\code{vector} containing the raw texts for training.}
-
-\item{aug_vocab_by}{\code{int} Number of entries for extending the current
-vocabulary. See notes for more details}
 
 \item{p_mask}{\code{double} Ratio determining the number of words/tokens for masking.}
 
@@ -52,11 +55,18 @@ validation.}
 
 \item{chunk_size}{\code{int} Size of every chunk for training.}
 
+\item{full_sequences_only}{\code{bool} \code{TRUE} for using only chunks
+with a sequence length equal to \code{chunk_size}.}
+
+\item{min_seq_len}{\code{int} Only relevant if \code{full_sequences_only=FALSE}.
+Value determines the minimal sequence length for inclusion in training process.}
+
 \item{learning_rate}{\code{double} Learning rate for adam optimizer.}
 
-\item{n_workers}{\code{int} Number of workers.}
+\item{n_workers}{\code{int} Number of workers. Only relevant if \code{ml_framework="tensorflow"}.}
 
-\item{multi_process}{\code{bool} \code{TRUE} if multiple processes should be activated.}
+\item{multi_process}{\code{bool} \code{TRUE} if multiple processes should be activated.
+Only relevant if \code{ml_framework="tensorflow"}.}
 
 \item{sustain_track}{\code{bool} If \code{TRUE} energy consumption is tracked
 during training via the python library codecarbon.}
@@ -78,7 +88,7 @@ to the console.}
 \item{keras_trace}{\code{int} \code{keras_trace=0} does not print any
 information about the training process from keras on the console.
 \code{keras_trace=1} prints a progress bar. \code{keras_trace=2} prints
-one line of information for every epoch.}
+one line of information for every epoch. Only relevant if \code{ml_framework="tensorflow"}.}
 }
 \value{
 This function does not return an object. Instead the trained or fine-tuned
@@ -90,9 +100,8 @@ based on BERT architecture with the help of the python libraries 'transformers',
 'datasets', and 'tokenizers'.
 }
 \note{
-if \code{aug_vocab_by > 0} the raw text is used for training a WordPiece
-tokenizer. At the end of this process, additional entries are added to the vocabulary
-that are not part of the original vocabulary. This is in an experimental state.
+This models uses a WordPiece Tokenizer like BERT and can be trained with
+whole word masking. Transformer library may show a warning which can be ignored.
 
 Pre-Trained models which can be fine-tuned with this function are available
 at \url{https://huggingface.co/}.
@@ -116,8 +125,12 @@ Hugging Face documentation
 \seealso{
 Other Transformer: 
 \code{\link{create_bert_model}()},
+\code{\link{create_deberta_v2_model}()},
+\code{\link{create_funnel_model}()},
 \code{\link{create_longformer_model}()},
 \code{\link{create_roberta_model}()},
+\code{\link{train_tune_deberta_v2_model}()},
+\code{\link{train_tune_funnel_model}()},
 \code{\link{train_tune_longformer_model}()},
 \code{\link{train_tune_roberta_model}()}
 }

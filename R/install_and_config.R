@@ -4,30 +4,80 @@
 #'
 #'@param envname \code{string} Name of the environment where the packages should
 #'be installed.
+#'@param tf_version \code{string} determining the desired version of 'tensorflow'.
+#'@param pytorch_cuda_version \code{string} determining the desired version of 'cuda' for
+#''PyTorch'.
+#'@param remove_first \code{bool} If \code{TRUE} removes the environment completely before
+#'recreating the environment and installing the packages. If \code{FALSE} the packages
+#'are installed in the existing environment without any prior changes.
+#'@param cpu_only \code{bool} \code{TRUE} installs the cpu only version of the
+#'machine learning frameworks.
 #'@return Returns no values or objects. Function is used for installing the
 #'necessary python libraries in a conda environment.
 #'@importFrom reticulate conda_create
 #'@importFrom reticulate py_install
+#'@importFrom utils compareVersion
 #'@family Installation and Configuration
 #'@export
-install_py_modules<-function(envname="aifeducation"){
+install_py_modules<-function(envname="aifeducation",
+                             tf_version="<=2.14",
+                             pytorch_cuda_version="12.1",
+                             remove_first=FALSE,
+                             cpu_only=FALSE){
   relevant_modules<-c("transformers",
                       "tokenizers",
                       "datasets",
-                      "torch",
-                      "codecarbon")
+                      "codecarbon",
+                      "accelerate"
+                      )
 
-  reticulate::conda_create(
-    envname = envname,
-    channel=c("conda-forge")
-  )
+  if(remove_first==TRUE){
+    conda_environments<-reticulate::conda_list()
+      if((envname %in% conda_environments$name)==TRUE){
+      reticulate::conda_remove(envname = envname)
+    }
 
-  reticulate::conda_install(
-    packages = c("tensorflow"),
-    envname = envname,
-    conda = "auto",
-    pip = TRUE
-  )
+    reticulate::conda_create(
+      envname = envname,
+      channel=c("conda-forge")
+    )
+  }
+
+  if(cpu_only==TRUE){
+    reticulate::conda_install(
+      packages = c(
+        "tensorflow-cpu",
+        "torch",
+        "keras"),
+      envname = envname,
+      conda = "auto",
+      pip = TRUE)
+  } else {
+      reticulate::conda_install(
+      packages = c(
+        paste0("tensorflow",tf_version),
+        "keras"),
+      envname = envname,
+      conda = "auto",
+      pip = TRUE)
+
+    reticulate::conda_install(
+      packages = c(
+        "cudatoolkit",
+        "cuDNN"),
+      envname = envname,
+      conda = "auto",
+      pip = FALSE)
+
+    reticulate::conda_install(
+      packages = c(
+        "pytorch",
+        paste0("pytorch-cuda","=",pytorch_cuda_version)),
+      envname = envname,
+      channel=c("pytorch","nvidia"),
+      conda = "auto",
+      pip = FALSE)
+  }
 
   reticulate::conda_install(
     packages = relevant_modules,
@@ -35,6 +85,7 @@ install_py_modules<-function(envname="aifeducation"){
     conda = "auto",
     pip = TRUE
   )
+
 }
 
 #'Check if all necessary python modules are available
@@ -133,7 +184,7 @@ set_config_tf_logger<-function(level="ERROR"){
 #'This function changes the level for logging information with 'tensorflow' via
 #'the os environment. This function must be called before importing 'tensorflow'.
 #'
-#'@param level \code{string} Minimal level that should be printed to console. Five
+#'@param level \code{string} Minimal level that should be printed to console. Four
 #'levels are available: INFO, WARNING, ERROR and NONE.
 #'@return This function does not return anything. It is used for its
 #'side effects.
@@ -152,3 +203,124 @@ set_config_os_environ_logger<-function(level="ERROR"){
 
   os$environ$setdefault("TF_CPP_MIN_LOG_LEVEL","2")
 }
+
+#'Sets the level for logging information of the 'transformers' library.
+#'
+#'This function changes the level for logging information of the 'transformers' library.
+#'It influences the output printed to console for creating and training transformer models as well as
+#'\link{TextEmbeddingModel}s.
+#'
+#'@param level \code{string} Minimal level that should be printed to console. Four
+#'levels are available: INFO, WARNING, ERROR and DEBUG
+#'@return This function does not return anything. It is used for its
+#'side effects.
+#'@family Installation and Configuration
+#'@export
+set_transformers_logger<-function(level="ERROR"){
+  if(level=="ERROR"){
+    transformers$utils$logging$set_verbosity_error()
+  } else if (level=="WARNING"){
+    transformers$utils$logging$set_verbosity_warning()
+  } else if (level=="INFO"){
+    transformers$utils$logging$set_verbosity_info()
+  } else if(level=="DEBUG"){
+    transformers$utils$logging$set_verbosity_debug()
+  }
+}
+
+#'R6 class for settting the global machine learning framework.
+#'
+#'R6 class for setting the global machine learning framework to 'PyTorch' or
+#''tensorflow' depending of the available version of 'keras'.
+#'
+#'@param backend \code{string} Determines the machine learning framework
+#'for using with 'keras'. Possible are \code{keras_framework="pytorch"} for 'pytorch',
+#'\code{keras_framework="tensorflow"} for 'tensorflow'.
+#'@return The function does nothing return. It is used for its side effects.
+#'@note This function must be called directly after loading 'aifeducation' to take effect.
+#'@note Please note that using classifier objects with 'PyTorch' requires keras of
+#'at least version 3. If you have an older version 'tensorflow' is used.
+#'
+#'@family Installation and Configuration
+AifeducationConfiguration<-R6::R6Class(
+  classname = "aifeducationConfiguration",
+  private = list(
+    TextEmbeddingFramework="not_specified",
+    ClassifierFramework="not_specified"
+  ),
+  public = list(
+    #'@description Method for requesting the used machine learning framework.
+    #'@return Returns a \code{list} containing the used machine learning framework
+    #'for \link{TextEmbeddingModel}s as well as for \link{TextEmbeddingClassifierNeuralNet}.
+    get_framework=function(){
+      return(
+        list(TextEmbeddingFramework=private$TextEmbeddingFramework,
+             ClassifierFramework=private$ClassifierFramework))
+    },
+    #'@description Method for setting machine learning framework.
+    #'@param backend \code{string} Framework to use for training and inference.
+    #'\code{backend="tensorflow"} for 'tensorflow' and \code{backend="pytorch"}
+    #'for 'PyTorch'.
+    #'@return This method does nothing return. It is used for setting the global
+    #'configuration of 'aifeducation'.
+    #'@importFrom utils compareVersion
+    set_global_ml_backend=function(backend){
+
+      if((backend %in% c("tensorflow","pytorch"))==FALSE) {
+        stop("backend must be 'tensorflow' or 'pytorch'.")
+      }
+
+
+      py_package_list<-reticulate::py_list_packages()
+      keras_version<-as.character(py_package_list[which(py_package_list$package=="keras"),"version"])
+
+      if(private$TextEmbeddingFramework=="not_specified"){
+        if(utils::compareVersion(keras_version,"2.4.0")>=0 &
+           utils::compareVersion(keras_version,"3.0.0")<0){
+          private$TextEmbeddingFramework=backend
+          private$ClassifierFramework="tensorflow"
+          os$environ$setdefault("KERAS_BACKEND","tensorflow")
+
+          cat("keras Version:",keras_version,"\n")
+          cat("Backend for TextEmbeddingModels:",private$TextEmbeddingFramework,"\n")
+          cat("Backend for Classifiers:",private$ClassifierFramework,"\n")
+
+        } else if(utils::compareVersion(keras_version,"3.0.0")>=0){
+          private$TextEmbeddingFramework=backend
+          private$ClassifierFramework=backend
+          os$environ$setdefault("KERAS_BACKEND",backend)
+
+          cat("keras Version:",keras_version,"\n")
+          cat("Backend for TextEmbeddingModels:",private$TextEmbeddingFramework,"\n")
+          cat("Backend for Classifiers:",private$ClassifierFramework,"\n")
+
+        } else {
+          stop("No compatible version of keras found.")
+        }
+      } else {
+        warning("The global machine learning framework has already been set.
+            If you would like to change the framework please restart the
+            session and set framework to the desired backend.")
+      }
+
+    },
+    #'@description Method for checking if the global ml framework is set.
+    #'@return Return \code{TRUE} if the global machine learning framework ist set.
+    #'Otherwiese \code{FALSE}.
+    global_framework_set=function(){
+      if(private$TextEmbeddingFramework=="not_specified"){
+        return(FALSE)
+      } else {
+        return(TRUE)
+      }
+    }
+  )
+)
+
+#' R6 object of class AifeducationConfiguration
+#'
+#' Object for managing setting the machine learning framework of a session.
+#'
+#'@family Installation and Configuration
+#'@export
+aifeducation_config<-NULL

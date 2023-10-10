@@ -5,10 +5,12 @@
 \title{Function for creating a new transformer based on Longformer}
 \usage{
 create_longformer_model(
+  ml_framework = aifeducation_config$get_framework()$TextEmbeddingFramework,
   model_dir,
   vocab_raw_texts = NULL,
   vocab_size = 30522,
   add_prefix_space = FALSE,
+  trim_offsets = TRUE,
   max_position_embeddings = 512,
   hidden_size = 768,
   num_hidden_layer = 12,
@@ -26,6 +28,10 @@ create_longformer_model(
 )
 }
 \arguments{
+\item{ml_framework}{\code{string} Framework to use for training and inference.
+\code{ml_framework="tensorflow"} for 'tensorflow' and \code{ml_framework="pytorch"}
+for 'pytorch'.}
+
 \item{model_dir}{\code{string} Path to the directory where the model should be saved.}
 
 \item{vocab_raw_texts}{\code{vector} containing the raw texts for creating the
@@ -35,6 +41,8 @@ vocabulary.}
 
 \item{add_prefix_space}{\code{bool} \code{TRUE} if an additional space should be insert
 to the leading words.}
+
+\item{trim_offsets}{\code{bool} \code{TRUE} trims the whitespaces from the produced offsets.}
 
 \item{max_position_embeddings}{\code{int} Number of maximal position embeddings. This parameter
 also determines the maximum length of a sequence which can be processed with the model.}
@@ -99,8 +107,12 @@ Hugging Face Documentation
 \seealso{
 Other Transformer: 
 \code{\link{create_bert_model}()},
+\code{\link{create_deberta_v2_model}()},
+\code{\link{create_funnel_model}()},
 \code{\link{create_roberta_model}()},
 \code{\link{train_tune_bert_model}()},
+\code{\link{train_tune_deberta_v2_model}()},
+\code{\link{train_tune_funnel_model}()},
 \code{\link{train_tune_longformer_model}()},
 \code{\link{train_tune_roberta_model}()}
 }

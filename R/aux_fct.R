@@ -156,7 +156,9 @@ return(TRUE)
 #'
 #'@param true_values \code{factor} containing the true labels/categories.
 #'@param predicted_values \code{factor} containing the predicted labels/categories.
-#'@return Returns a \code{vector} with the following reliability measures:
+#'@param return_names_only \code{bool} If \code{TRUE} returns only the names
+#'of the resulting vector. Use {FALSE} to request computation of the values.
+#'@return If \code{return_names_only=FALSE} returns a \code{vector} with the following reliability measures:
 #'#'\itemize{
 #'\item{\strong{iota_index: }}{Iota Index from the Iota Reliability Concept Version 2.}
 #'\item{\strong{min_iota2: }}{Minimal Iota from Iota Reliability Concept Version 2.}
@@ -170,21 +172,22 @@ return(TRUE)
 #'\item{\strong{kalpha_nominal: }}{Krippendorff's Alpha for nominal variables.}
 #'\item{\strong{kalpha_ordinal: }}{Krippendorff's Alpha for ordinal variables.}
 #'\item{\strong{kendall: }}{Kendall's coefficient of concordance W.}
-#'\item{\strong{kappa2: }}{Cohen's Kappa with equal weights.}
-#'\item{\strong{kappa_fleiss: }}{Fleiss' Kappa for multiple raters with exact estimation.}
-#'\item{\strong{kappa_light: }}{Light's Kappa for multiple raters.}
+#'\item{\strong{kappa2_unweighted: }}{Cohen's Kappa with equal weights.}
+#'\item{\strong{kappa2_equal_weighted: }}{Weighted Cohen's Kappa with equal weights.}
+#'\item{\strong{kappa2_squared_weighted: }}{Weighted Cohen's Kappa with squared weights.}
+#'\item{\strong{kappa_fleiss: }}{Fleiss' Kappa for multiple raters without exact estimation.}
 #'\item{\strong{percentage_agreement: }}{Percentage Agreement.}
 #'\item{\strong{gwet_ac: }}{Gwet's AC1/AC2 agreement coefficient.}
 #'}
 #'
+#'@return If \code{return_names_only=TRUE} returns only the names of the vector elements.
+#'
 #'@family Auxiliary Functions
 #'
 #'@export
-get_coder_metrics<-function(true_values,
-                            predicted_values){
-val_res=iotarelr::check_new_rater(true_values = true_values,
-                                  assigned_values = predicted_values,
-                                  free_aem = TRUE)
+get_coder_metrics<-function(true_values=NULL,
+                            predicted_values=NULL,
+                            return_names_only=FALSE){
 
   metric_names=c("iota_index",
                  "min_iota2",
@@ -198,53 +201,71 @@ val_res=iotarelr::check_new_rater(true_values = true_values,
                  "kalpha_nominal",
                  "kalpha_ordinal",
                  "kendall",
-                 "kappa2",
+                 "kappa2_unweighted",
+                 "kappa2_equal_weighted",
+                 "kappa2_squared_weighted",
                  "kappa_fleiss",
-                 "kappa_light",
                  "percentage_agreement",
                  "gwet_ac")
   metric_values=vector(length = length(metric_names))
   names(metric_values)=metric_names
 
-  val_res=iotarelr::check_new_rater(true_values = true_values,
-                                    assigned_values = predicted_values,
-                                    free_aem = FALSE)
-  val_res_free=iotarelr::check_new_rater(true_values = true_values,
-                                         assigned_values = predicted_values,
-                                         free_aem = TRUE)
+  if(return_names_only==TRUE){
+    return(metric_names)
+  } else {
+    val_res=iotarelr::check_new_rater(true_values = true_values,
+                                      assigned_values = predicted_values,
+                                      free_aem = TRUE)
 
-  metric_values["iota_index"]=val_res$scale_level$iota_index
+    val_res=iotarelr::check_new_rater(true_values = true_values,
+                                      assigned_values = predicted_values,
+                                      free_aem = FALSE)
+    val_res_free=iotarelr::check_new_rater(true_values = true_values,
+                                           assigned_values = predicted_values,
+                                           free_aem = TRUE)
 
-  metric_values["min_iota2"]=min(val_res_free$categorical_level$raw_estimates$iota)
-  metric_values["avg_iota2"]=mean(val_res_free$categorical_level$raw_estimates$iota)
-  metric_values["max_iota2"]=max(val_res_free$categorical_level$raw_estimates$iota)
+    metric_values["iota_index"]=val_res$scale_level$iota_index
 
-  metric_values["min_alpha"]=min(val_res_free$categorical_level$raw_estimates$alpha_reliability)
-  metric_values["avg_alpha"]=mean(val_res_free$categorical_level$raw_estimates$alpha_reliability)
-  metric_values["max_alpha"]=max(val_res_free$categorical_level$raw_estimates$alpha_reliability)
+    metric_values["min_iota2"]=min(val_res_free$categorical_level$raw_estimates$iota)
+    metric_values["avg_iota2"]=mean(val_res_free$categorical_level$raw_estimates$iota)
+    metric_values["max_iota2"]=max(val_res_free$categorical_level$raw_estimates$iota)
 
-  metric_values["static_iota_index"]=val_res$scale_level$iota_index_d4
-  metric_values["dynamic_iota_index"]=val_res$scale_level$iota_index_dyn2
+    metric_values["min_alpha"]=min(val_res_free$categorical_level$raw_estimates$alpha_reliability)
+    metric_values["avg_alpha"]=mean(val_res_free$categorical_level$raw_estimates$alpha_reliability)
+    metric_values["max_alpha"]=max(val_res_free$categorical_level$raw_estimates$alpha_reliability)
 
-  metric_values["kalpha_nominal"]=irr::kripp.alpha(x=rbind(true_values,predicted_values),
-                                                    method = "nominal")$value
-  metric_values["kalpha_ordinal"]=irr::kripp.alpha(x=rbind(true_values,predicted_values),
-                                                    method = "ordinal")$value
+    metric_values["static_iota_index"]=val_res$scale_level$iota_index_d4
+    metric_values["dynamic_iota_index"]=val_res$scale_level$iota_index_dyn2
 
-  metric_values["kendall"]=irr::kendall(ratings=cbind(true_values,predicted_values),
-                                                correct=TRUE)$value
-  metric_values["kappa2"]=irr::kappa2(ratings=cbind(true_values,predicted_values),
-                                               weight = "equal",
-                                               sort.levels = FALSE)$value
-  metric_values["kappa_fleiss"]=irr::kappam.fleiss(ratings=cbind(true_values,predicted_values),
-                                                       exact = TRUE,
-                                                       detail = FALSE)$value
-  metric_values["kappa_light"]=irr::kappam.light(ratings=cbind(true_values,predicted_values))$value
-  metric_values["percentage_agreement"]=irr::agree(ratings=cbind(true_values,predicted_values),
-                                               tolerance = 0)$value/100
-  metric_values["gwet_ac"]=irrCAC::gwet.ac1.raw(ratings=cbind(true_values,predicted_values))$est$coeff.val
+    metric_values["kalpha_nominal"]=irr::kripp.alpha(x=rbind(true_values,predicted_values),
+                                                      method = "nominal")$value
+    metric_values["kalpha_ordinal"]=irr::kripp.alpha(x=rbind(true_values,predicted_values),
+                                                      method = "ordinal")$value
 
-  return(metric_values)
+    metric_values["kendall"]=irr::kendall(ratings=cbind(true_values,predicted_values),
+                                                  correct=TRUE)$value
+
+    metric_values["kappa2_unweighted"]=irr::kappa2(ratings=cbind(true_values,predicted_values),
+                                                 weight = "unweighted",
+                                                 sort.levels = FALSE)$value
+    metric_values["kappa2_equal_weighted"]=irr::kappa2(ratings=cbind(true_values,predicted_values),
+                                        weight = "equal",
+                                        sort.levels = FALSE)$value
+    metric_values["kappa2_squared_weighted"]=irr::kappa2(ratings=cbind(true_values,predicted_values),
+                                        weight = "squared",
+                                        sort.levels = FALSE)$value
+
+    metric_values["kappa_fleiss"]=irr::kappam.fleiss(ratings=cbind(true_values,predicted_values),
+                                                         exact = FALSE,
+                                                         detail = FALSE)$value
+
+    metric_values["percentage_agreement"]=irr::agree(ratings=cbind(true_values,predicted_values),
+                                                 tolerance = 0)$value/100
+
+    metric_values["gwet_ac"]=irrCAC::gwet.ac1.raw(ratings=cbind(true_values,predicted_values))$est$coeff.val
+
+    return(metric_values)
+  }
 }
 
 #------------------------------------------------------------------------------
@@ -871,3 +892,5 @@ generate_id<-function(length=16){
     id_suffix=paste(id_suffix,collapse = "")
     return(id_suffix)
 }
+
+

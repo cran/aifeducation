@@ -157,6 +157,9 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
 
     #New-----------------------------------------------------------------------
     #'@description Creating a new instance of this class.
+    #'@param ml_framework \code{string} Framework to use for training and inference.
+    #'\code{ml_framework="tensorflow"} for 'tensorflow' and \code{ml_framework="pytorch"}
+    #'for 'pytorch'
     #'@param name \code{Character} Name of the new classifier. Please refer to
     #'common name conventions. Free text can be used with parameter \code{label}.
     #'@param label \code{Character} Label for the new classifier. Here you can use
@@ -183,7 +186,8 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
     #'@param rec_act_fct \code{character} naming the activation function for all recurrent layers.
     #'@return Returns an object of class \link{TextEmbeddingClassifierNeuralNet} which is ready for
     #'training.
-    initialize=function(name=NULL,
+    initialize=function(ml_framework=aifeducation_config$get_framework()$ClassifierFramework,
+                        name=NULL,
                         label=NULL,
                         text_embeddings=NULL,
                         targets=NULL,
@@ -227,7 +231,19 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
 
       #------------------------------------------------------------------------
 
-      #Setting Label and Name
+      #Setting ML Framework
+      if((ml_framework %in% c("tensorflow","pytorch"))==FALSE) {
+        stop("ml_framework must be 'tensorflow' or 'pytorch'.")
+      }
+
+      if(keras["__version__"]<"3.0.0" & ml_framework=="pytorch"){
+        stop("Using a classifier object with PyTorch requires Keras version 3.
+             Please use this object with tensorflow.")
+      }
+
+      private$ml_framework=ml_framework
+
+      #Setting Label and Name-------------------------------------------------
       private$model_info$model_name_root=name
       private$model_info$model_name=paste0(private$model_info$model_name_root,"_ID_",generate_id(16))
       private$model_info$model_label=label
@@ -282,10 +298,10 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
       n_hidden=length(config$hidden)
       if(n_req>0 |
          self_attention_heads>0){
-        model_input<-tf$keras$layers$Input(shape=list(as.integer(times),as.integer(features)),
+        model_input<-keras$layers$Input(shape=list(as.integer(times),as.integer(features)),
                                         name="input_embeddings")
       } else {
-        model_input<-tf$keras$layers$Input(shape=as.integer(times*features),
+        model_input<-keras$layers$Input(shape=as.integer(times*features),
                                         name="input_embeddings")
       }
       layer_list[1]<-list(model_input)
@@ -293,7 +309,7 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
       #Adding a Mask-Layer
       if(n_req>0 |
          self_attention_heads>0){
-        masking_layer<-tf$keras$layers$Masking(
+        masking_layer<-keras$layers$Masking(
                              mask_value = 0.0,
                              name="masking_layer",
                              input_shape=c(times,features),
@@ -304,11 +320,11 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
       #Adding a Normalization Layer
       if(n_req>0|
          self_attention_heads>0){
-        norm_layer<-tf$keras$layers$LayerNormalization(
+        norm_layer<-keras$layers$LayerNormalization(
           name = "normalizaion_layer")(layer_list[[length(layer_list)]])
         layer_list[length(layer_list)+1]<-list(norm_layer)
       } else {
-        norm_layer<-tf$keras$layers$BatchNormalization(
+        norm_layer<-keras$layers$BatchNormalization(
           name = "normalizaion_layer")(layer_list[[length(layer_list)]])
         layer_list[length(layer_list)+1]<-list(norm_layer)
       }
@@ -318,8 +334,8 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
         for(i in 1:n_req){
           if(i<n_req){
             layer_list[length(layer_list)+1]<-list(
-              tf$keras$layers$Bidirectional(
-                layer=tf$keras$layers$GRU(
+              keras$layers$Bidirectional(
+                layer=keras$layers$GRU(
                    units=as.integer(config$rec[i]),
                    input_shape=list(times,features),
                    return_sequences = TRUE,
@@ -336,8 +352,8 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
               return_sequence=FALSE
             }
             layer_list[length(layer_list)+1]<-list(
-              tf$keras$layers$Bidirectional(
-                layer=tf$keras$layers$GRU(
+              keras$layers$Bidirectional(
+                layer=keras$layers$GRU(
                    units=as.integer(config$rec[i]),
                    input_shape=list(times,features),
                    return_sequences = return_sequence,
@@ -364,7 +380,7 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
           self_attention_units=features/2
         }
 
-        self_attention_layer<-tf$keras$layers$MultiHeadAttention(
+        self_attention_layer<-keras$layers$MultiHeadAttention(
           num_heads = as.integer(self_attention_heads),
           key_dim = as.integer(self_attention_units),
           name="self_attention")
@@ -374,41 +390,41 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
                                layer_list[[length(layer_list)]],
                                layer_list[[length(layer_list)]]))
 
-        addition_layer_attention<-tf$keras$layers$add(
+        addition_layer_attention<-keras$layers$add(
           inputs=list(layer_list[[length(layer_list)]],
                       layer_list[[length(layer_list)-1]]))
         layer_list[length(layer_list)+1]<-list(addition_layer_attention)
 
-        norm_layer_attention<-tf$keras$layers$LayerNormalization(
+        norm_layer_attention<-keras$layers$LayerNormalization(
           name = "normalizaion_layer_attention")(layer_list[[length(layer_list)]])
         layer_list[length(layer_list)+1]<-list(norm_layer_attention)
 
-        proj_dense_1<-tf$keras$layers$Dense(
+        proj_dense_1<-keras$layers$Dense(
           units = as.integer(self_attention_heads*2*self_attention_units),
           activation = config$act_fct,
-          kernel_regularizer = tf$keras$regularizers$l2(config$l2_regularizer),
+          kernel_regularizer = keras$regularizers$l2(config$l2_regularizer),
           name="dense_projection_1")(layer_list[[length(layer_list)]])
         layer_list[length(layer_list)+1]<-list(proj_dense_1)
 
-        proj_dense_2<-tf$keras$layers$Dense(
+        proj_dense_2<-keras$layers$Dense(
           units = as.integer(2*self_attention_units),
           activation = config$act_fct,
-          kernel_regularizer = tf$keras$regularizers$l2(config$l2_regularizer),
+          kernel_regularizer = keras$regularizers$l2(config$l2_regularizer),
           name="dense_projection_2")(layer_list[[length(layer_list)]])
         layer_list[length(layer_list)+1]<-list(proj_dense_2)
 
-        addition_layer_projection<-tf$keras$layers$add(
+        addition_layer_projection<-keras$layers$add(
           inputs=list(layer_list[[length(layer_list)]],
                       layer_list[[length(layer_list)-2]]))
         layer_list[length(layer_list)+1]<-list(addition_layer_projection)
 
-        norm_layer_projection<-tf$keras$layers$LayerNormalization(
+        norm_layer_projection<-keras$layers$LayerNormalization(
           name = "normalizaion_layer_projection")(layer_list[[length(layer_list)]])
         layer_list[length(layer_list)+1]<-list(norm_layer_projection)
 
         layer_list[length(layer_list)+1]<-list(
-          tf$keras$layers$Bidirectional(
-            layer=tf$keras$layers$GRU(
+          keras$layers$Bidirectional(
+            layer=keras$layers$GRU(
               units=as.integer(self_attention_units),
               input_shape=list(times,features),
               return_sequences = FALSE,
@@ -424,17 +440,17 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
       if(n_hidden>0){
         for(i in 1:n_hidden){
           layer_list[length(layer_list)+1]<-list(
-            tf$keras$layers$Dense(
+            keras$layers$Dense(
               units = as.integer(config$hidden[i]),
               activation = config$act_fct,
-              kernel_regularizer = tf$keras$regularizers$l2(config$l2_regularizer),
+              kernel_regularizer = keras$regularizers$l2(config$l2_regularizer),
               name=paste0("dense",i))(layer_list[[length(layer_list)]])
             )
 
           if(i==(n_hidden-1) & n_hidden>=2){
             #Add Dropout_Layer
             layer_list[length(layer_list)+1]<-list(
-              tf$keras$layers$Dropout(
+              keras$layers$Dropout(
                 rate = config$dropout,
                 name="dropout")(layer_list[[length(layer_list)]])
               )
@@ -446,7 +462,7 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
       if(length(target_levels_order)>2){
         #Multi Class
         layer_list[length(layer_list)+1]<-list(
-          tf$keras$layers$Dense(
+          keras$layers$Dense(
             units = as.integer(length(levels(targets))),
             activation = config$act_fct_last,
             name="output_categories")(layer_list[[length(layer_list)]])
@@ -454,7 +470,7 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
       } else {
         #Binary Class
         layer_list[length(layer_list)+1]<-list(
-          tf$keras$layers$Dense(
+          keras$layers$Dense(
             units = as.integer(1),
             activation = config$act_fct_last,
             name="output_categories")(layer_list[[length(layer_list)]])
@@ -462,7 +478,7 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
       }
 
       #Creating Model
-      model<-tf$keras$Model(
+      model<-keras$Model(
         inputs = model_input,
         outputs = layer_list[length(layer_list)],
         name = name)
@@ -470,13 +486,13 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
         #if(config$optimizer=="adam"){
         #  model$compile(
         #    loss = config$err_fct,
-        #    optimizer=tf$keras$optimizers$Adam(),
+        #    optimizer=keras$optimizers$Adam(),
         #    metrics=config$metric)
 
         #} else if(config$optimizer=="rmsprop"){
         #  model$compile(
         #    loss = self$model_config$init_config$err_fct,
-        #    optimizer=tf$keras$optimizers$RMSprop(),
+        #    optimizer=keras$optimizers$RMSprop(),
         #    metric=self$model_config$init_config$metric)
         #}
 
@@ -497,12 +513,13 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
       private$r_package_versions$smotefamily<-packageVersion("smotefamily")
 
       private$py_package_versions$tensorflow<-tf$version$VERSION
+      private$py_package_versions$torch<-torch["__version__"]
+      private$py_package_versions$keras<-keras["__version__"]
       private$py_package_versions$numpy<-np$version$short_version
     },
 
     #-------------------------------------------------------------------------
-    #'@description Method for training a neural net with keras and
-    #'tensorflow.
+    #'@description Method for training a neural net.
     #'@param data_embeddings Object of class \code{TextEmbeddingModel}.
     #'@param data_targets \code{Factor} containing the labels for cases
     #'stored in \code{data_embeddings}. Factor must be named and has to use the
@@ -619,7 +636,9 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
                    keras_trace=2,
                    n_cores=2){
 
+      requireNamespace(package="foreach")
       start_time=Sys.time()
+      base::gc(verbose = FALSE,full = TRUE)
 
       #Start Sustainability Tracking
       if(sustain_track==TRUE){
@@ -770,31 +789,20 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
       data_bsc_test=data_bsc_train
 
       #Initializing Objects for Saving Performance
+      metric_names=get_coder_metrics(
+        true_values=NULL,
+        predicted_values=NULL,
+        return_names_only=TRUE)
+
       test_metric=array(dim=c(folds$n_folds,
                              4,
-                             17),
+                             length(metric_names)),
                        dimnames = list(iterations=NULL,
                                        steps=c("Baseline",
                                                "BSC",
                                                "BPL",
                                                "Final"),
-                                       metrics=c("iota_index",
-                                                 "min_iota2",
-                                                 "avg_iota2",
-                                                 "max_iota2",
-                                                 "min_alpha",
-                                                 "avg_alpha",
-                                                 "max_alpha",
-                                                 "static_iota_index",
-                                                 "dynamic_iota_index",
-                                                 "kalpha_nominal",
-                                                 "kalpha_ordinal",
-                                                 "kendall",
-                                                 "kappa2",
-                                                 "kappa_fleiss",
-                                                 "kappa_light",
-                                                 "percentage_agreement",
-                                                 "gwet_ac")))
+                                       metrics=metric_names))
       iota_objects_start=NULL
       iota_objects_end=NULL
       iota_objects_start_free=NULL
@@ -810,6 +818,7 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
       private$model_info$model_name=paste0(private$model_info$model_name_root,"_id_",generate_id(16))
 
       for(iter in 1:folds$n_folds){
+        base::gc(verbose = FALSE,full = TRUE)
         #---------------------------------------------
         #Create a Train and Validation Sample
         names_targets_labaled_test=folds$val_sample[[iter]]
@@ -1027,7 +1036,7 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
           #            "Test",length(targets_labeled_test)))
 
         }
-
+        base::gc(verbose = FALSE,full = TRUE)
         #Applying Pseudo Labeling-----------------------------------------------
         if(use_bpl==TRUE){
           categories<-names(table(data_targets))
@@ -1039,18 +1048,18 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
 
           #Defining the basic parameter for while
           step=1
-          val_avg_alpha=0
+          val_avg_alpha=-100
+
+          pseudo_label_targets_labeled_test=targets_labeled_test
 
           if(use_bsc==TRUE){
             pseudo_label_embeddings_all=embeddings_all_and_synthetic
             pseudo_label_targets_labeled_train=targets_all_and_synthetic[names_targets_labeled_train_train]
-            pseudo_label_targets_labeled_test=targets_labeled_test
             pseudo_label_targets_labeled_val=targets_all_and_synthetic[names_targets_labeled_train_test]
           } else {
             pseudo_label_embeddings_all=embeddings_all
             pseudo_label_targets_labeled_train=targets_labeled_train_train
             pseudo_label_targets_labeled_val=targets_labeled_val
-            pseudo_label_targets_labeled_test=targets_labeled_test
           }
           weights_cases_list=NULL
           weights_cases_list[1]=list(names_targets_labeled_train_train)
@@ -1060,7 +1069,7 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
 
           #Start of While-------------------------------------------------------
           while(step <=bpl_max_steps & added_cases_train>0){
-
+            base::gc(verbose = FALSE,full = TRUE)
             if(bpl_dynamic_inc==TRUE){
               bpl_inc_ratio=step/bpl_max_steps
             } else {
@@ -1191,9 +1200,6 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
               val_res=get_coder_metrics(true_values = pseudo_label_targets_labeled_val,
                                         predicted_values = val_pred_cat)
 
-              #cat(table(data.frame(pred=val_predictions$expected_category,
-              #              true=pseudo_label_targets_labeled_val)))
-
               #Predict test targets
               test_predictions=self$predict(newdata = embeddings_all[names(pseudo_label_targets_labeled_test),,],
                                             verbose = keras_trace,
@@ -1206,17 +1212,11 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
 
               if(val_avg_alpha<val_res["avg_alpha"]){
                 val_avg_alpha=val_res["avg_alpha"]
-                new_best_model=tf$keras$models$clone_model(self$model)
+                #new_best_model=keras$models$clone_model(self$model)
+                self$model$save_weights(paste0(dir_checkpoint,"/checkpoints/bpl_best_weights.h5"))
                 best_val_metric=val_res
                 best_test_metric=test_res
               }
-              #cat(paste("Validation:",val_res["avg_alpha"]))
-              #cat(paste("Test:",test_res["avg_alpha"]))
-
-              #cat(paste("Train",length(targets_labeled_and_pseudo),
-              #            "Validation",length(pseudo_label_targets_labeled_val),
-              #            "Test",length(pseudo_label_targets_labeled_test),
-              #            "Unlabeled",length(targets_pseudo_labeled)))
 
               if(trace==TRUE){
                 cat(paste(date(),
@@ -1227,7 +1227,8 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
             step=step+1
           }
 
-          self$model=tf$keras$models$clone_model(new_best_model)
+          #self$model=keras$models$clone_model(new_best_model)
+          self$model$load_weights(paste0(dir_checkpoint,"/checkpoints/bpl_best_weights.h5"))
           test_metric[iter,"BPL",]<-best_test_metric
           test_res<-best_test_metric
         }
@@ -1300,6 +1301,7 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
       }
 
       #Final Training----------------------------------------------------------
+      base::gc(verbose = FALSE,full = TRUE)
       if((use_bsc==FALSE & use_bpl==FALSE) |
          #(use_baseline=TRUE) |
         (use_bsc==FALSE & use_bpl==TRUE)){
@@ -1338,7 +1340,7 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
       }
 
       #Final Training with BSC--------------------------------------------------
-
+      base::gc(verbose = FALSE,full = TRUE)
       if(use_bsc==TRUE){
         if(trace==TRUE){
           cat(paste(date(),
@@ -1477,7 +1479,7 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
 
         #Defining the basic parameter for while
         step=1
-        val_avg_alpha=0
+        val_avg_alpha=-100
 
         if(use_bsc==TRUE){
           pseudo_label_embeddings_all=embeddings_all_and_synthetic
@@ -1498,7 +1500,7 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
 
         #Start of While-------------------------------------------------------
         while(step <=bpl_max_steps & added_cases_train>0){
-
+          base::gc(verbose = FALSE,full = TRUE)
           #cat(paste("Train",length(pseudo_label_targets_labeled_train),
           #            "Validation",length(pseudo_label_targets_labeled_val),
           #            "Unlabeled",length(names_unlabeled)))
@@ -1633,7 +1635,8 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
 
           if(val_avg_alpha<val_res["avg_alpha"]){
             val_avg_alpha=val_res["avg_alpha"]
-            new_best_model=tf$keras$models$clone_model(self$model)
+            #new_best_model=keras$models$clone_model(self$model)
+            self$model$save_weights(paste0(dir_checkpoint,"/bpl_best_weights.h5"))
             best_val_metric=val_res
           }
           #cat(paste("Validation:",val_res["avg_alpha"]))
@@ -1647,7 +1650,8 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
           step=step+1
         }
 
-        self$model=tf$keras$models$clone_model(new_best_model)
+        #self$model=keras$models$clone_model(new_best_model)
+        self$model$load_weights(paste0(dir_checkpoint,"/bpl_best_weights.h5"))
       }
       #Save Final Information
       self$last_training$date=date()
@@ -1700,6 +1704,19 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
       if(sustain_track==TRUE){
         sustainability_tracker$stop()
         private$sustainability<-summarize_tracked_sustainability(sustainability_tracker)
+      } else {
+        private$sustainability=list(
+          sustainability_tracked=FALSE,
+          date=NA,
+          sustainability_data=list(
+            duration_sec=NA,
+            co2eq_kg=NA,
+            cpu_energy_kwh=NA,
+            gpu_energy_kwh=NA,
+            ram_energy_kwh=NA,
+            total_energy_kwh=NA
+          )
+        )
       }
 
       if(trace==TRUE){
@@ -1932,16 +1949,18 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
       return(private$model_description)
     },
     #-------------------------------------------------------------------------
-    #'@description Method for saving a model to 'tensorflow' SavedModel format
-    #'or h5 format.
+    #'@description Method for saving a model to 'Keras v3 format',
+    #''tensorflow' SavedModel format or h5 format.
     #'@param dir_path \code{string()} Path of the directory where the model should be
     #'saved.
-    #'@param save_format Format for saving the model. \code{"tf"} for SavedModel
-    #'or \code{"h5"} for HDF5.
+    #'@param save_format Format for saving the model. \code{"keras"} for 'Keras v3 format',
+    #'\code{"tf"} for SavedModel or \code{"h5"} for HDF5.
     #'@return Function does not return a value. It saves the model to disk.
     #'@importFrom utils write.csv
-     save_model=function(dir_path,save_format="tf"){
-       if(save_format=="tf"){
+     save_model=function(dir_path,save_format="keras"){
+       if(save_format=="keras"){
+         extension=".keras"
+       } else if(save_format=="tf"){
          extension=".tf"
        } else {
          extension=".h5"
@@ -1964,22 +1983,57 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
          row.names = FALSE
        )
     },
-    #'@description Method for importing a model from 'tensorflow' SavedModel format
-    #'or h5 format.
+    #'@description Method for importing a model from 'Keras v3 format',
+    #' 'tensorflow' SavedModel format or h5 format.
     #'@param dir_path \code{string()} Path of the directory where the model is
     #'saved.
+    #'@param ml_framework \code{string} Determines the machine learning framework
+    #'for using the model. Possible are \code{ml_framework="pytorch"} for 'pytorch',
+    #'\code{ml_framework="tensorflow"} for 'tensorflow', and \code{ml_framework="auto"}.
     #'@return Function does not return a value. It is used to load the weights
     #'of a model.
-    load_model=function(dir_path){
-      tf=reticulate::import("tensorflow")
+    #'@importFrom utils compareVersion
+    load_model=function(dir_path,
+                        ml_framework="auto"){
 
-      path=paste0(dir_path,"/","model_data",".tf")
+      # Set the correct ml framework
 
-      if(dir.exists(paths = path)==TRUE){
-        self$model<-tf$keras$models$load_model(path)
-      } else {
-        self$model<-tf$keras$models$load_model(paste0(dir_path,"/","model_data",".h5"))
+      if((ml_framework %in%c("pytorch","tensorflow","auto","not_specified"))==FALSE){
+        stop("ml_framework must be 'tensorflow', 'pytorch' or 'auto'.")
       }
+
+      if(ml_framework=="not_specified"){
+        stop("The global machine learning framework is not set. Please use
+             aifeducation_config$set_global_ml_backend() directly after loading
+             the library to set the global framework. ")
+      }
+
+      if(utils::compareVersion(keras["__version__"],"3.0.0")>=0 & ml_framework=="auto"){
+        private$ml_framework="tensorflow"
+      } else if (utils::compareVersion(keras["__version__"],"3.0.0")<0 & ml_framework=="pytorch"){
+        private$ml_framework="tensorflow"
+        warning("Using a classifier object with PyTorch requires at least Keras Version 3.
+                ml_framework is set to tensorflow.")
+      } else if (utils::compareVersion(keras["__version__"],"3.0.0")>=0 & ml_framework!="auto"){
+        private$ml_framework=ml_framework
+      } else {
+        private$ml_framework="tensorflow"
+      }
+
+      #Load the model
+      path=paste0(dir_path,"/","model_data",".keras")
+
+      if(file.exists(paths = path)==TRUE){
+        self$model<-keras$models$load_model(path)
+      } else {
+        path=paste0(dir_path,"/","model_data",".tf")
+        if(dir.exists(paths = path)==TRUE){
+          self$model<-keras$models$load_model(path)
+        } else {
+          self$model<-keras$models$load_model(paste0(dir_path,"/","model_data",".h5"))
+        }
+      }
+
     },
     #---------------------------------------------------------------------------
     #'@description Method for requesting a summary of the R and python packages'
@@ -1988,8 +2042,8 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
     #'R and python packages.
     get_package_versions=function(){
       return(
-        list(private$r_package_versions,
-             private$py_package_versions)
+        list(r_package_versions=private$r_package_versions,
+             py_package_versions=private$py_package_versions)
       )
     },
     #---------------------------------------------------------------------------
@@ -2003,6 +2057,8 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
     }
   ),
   private = list(
+    ml_framework=NA,
+
     #General Information-------------------------------------------------------
     model_info=list(
       model_license=NA,
@@ -2044,6 +2100,8 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
 
     py_package_versions=list(
       tensorflow=NA,
+      torch=NA,
+      keras=NA,
       numpy=NA
     ),
 
@@ -2105,7 +2163,7 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
       }
 
       #Clear session to provide enough resources for computations
-      tf$keras$backend$clear_session()
+      keras$backend$clear_session()
 
       model<-self$model
 
@@ -2144,9 +2202,9 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
 
       if(length(target_levels_order)>2){
         #Multi Class
-        output_categories_train=tf$keras$utils$to_categorical(y=target_train_transformed,
+        output_categories_train=keras$utils$to_categorical(y=target_train_transformed,
                                                               num_classes=n_categories)
-        output_categories_test=tf$keras$utils$to_categorical(y=target_test_transformed,
+        output_categories_test=keras$utils$to_categorical(y=target_test_transformed,
                                                             num_classes=n_categories)
       } else {
         #Binary Classification
@@ -2162,12 +2220,12 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
         if(self$model_config$init_config$optimizer=="adam"){
           model$compile(
             loss = self$model_config$init_config$err_fct,
-            optimizer=tf$keras$optimizers$Adam(),
+            optimizer=keras$optimizers$Adam(),
             metrics=self$model_config$init_config$metric)
         } else if (self$model_config$init_config$optimizer=="rmsprop"){
           model$compile(
             loss = self$model_config$init_config$err_fct,
-            optimizer=tf$keras$optimizers$RMSprop(),
+            optimizer=keras$optimizers$RMSprop(),
             metrics=self$model_config$init_config$metric)
         }
 
@@ -2177,7 +2235,7 @@ TextEmbeddingClassifierNeuralNet<-R6::R6Class(
       }
 
       if(use_callback==TRUE){
-        callback=tf$keras$callbacks$ModelCheckpoint(
+        callback=keras$callbacks$ModelCheckpoint(
           filepath = paste0(dir_checkpoint,"/checkpoints/best_weights.h5"),
           monitor = paste0("val_",self$model_config$init_config$metric),
           verbose = as.integer(min(keras_trace,1)),

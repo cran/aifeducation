@@ -5,6 +5,7 @@
 \title{Function for creating a new transformer based on BERT}
 \usage{
 create_bert_model(
+  ml_framework = aifeducation_config$get_framework()$TextEmbeddingFramework,
   model_dir,
   vocab_raw_texts = NULL,
   vocab_size = 30522,
@@ -16,6 +17,7 @@ create_bert_model(
   intermediate_size = 3072,
   hidden_act = "gelu",
   hidden_dropout_prob = 0.1,
+  attention_probs_dropout_prob = 0.1,
   sustain_track = TRUE,
   sustain_iso_code = NULL,
   sustain_region = NULL,
@@ -24,6 +26,10 @@ create_bert_model(
 )
 }
 \arguments{
+\item{ml_framework}{\code{string} Framework to use for training and inference.
+\code{ml_framework="tensorflow"} for 'tensorflow' and \code{ml_framework="pytorch"}
+for 'pytorch'.}
+
 \item{model_dir}{\code{string} Path to the directory where the model should be saved.}
 
 \item{vocab_raw_texts}{\code{vector} containing the raw texts for creating the
@@ -49,6 +55,9 @@ the attention mechanism.}
 \item{hidden_act}{\code{string} name of the activation function.}
 
 \item{hidden_dropout_prob}{\code{double} Ratio of dropout.}
+
+\item{attention_probs_dropout_prob}{\code{double} Ratio of dropout for attention
+probabilities.}
 
 \item{sustain_track}{\code{bool} If \code{TRUE} energy consumption is tracked
 during training via the python library codecarbon.}
@@ -79,6 +88,9 @@ the python libraries 'transformers' and 'tokenizers'.
 \note{
 To train the model, pass the directory of the model to the function
 \link{train_tune_bert_model}.
+
+This models uses a WordPiece Tokenizer like BERT and can be trained with
+whole word masking. Transformer library may show a warning which can be ignored.
 }
 \references{
 Devlin, J., Chang, M.‑W., Lee, K., & Toutanova, K. (2019). BERT:
@@ -93,9 +105,13 @@ Hugging Face documentation
 }
 \seealso{
 Other Transformer: 
+\code{\link{create_deberta_v2_model}()},
+\code{\link{create_funnel_model}()},
 \code{\link{create_longformer_model}()},
 \code{\link{create_roberta_model}()},
 \code{\link{train_tune_bert_model}()},
+\code{\link{train_tune_deberta_v2_model}()},
+\code{\link{train_tune_funnel_model}()},
 \code{\link{train_tune_longformer_model}()},
 \code{\link{train_tune_roberta_model}()}
 }

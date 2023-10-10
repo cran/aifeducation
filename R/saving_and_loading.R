@@ -3,13 +3,30 @@
 #'Function for loading models created with 'aifeducation'.
 #'
 #'@param model_dir Path to the directory where the model is stored.
+#'@param ml_framework \code{string} Determines the machine learning framework
+#'for using the model. Possible are \code{ml_framework="pytorch"} for 'pytorch',
+#'\code{ml_framework="tensorflow"} for 'tensorflow', and \code{ml_framework="auto"}.
+#'for using the framework used when saving the model.
 #'@return Returns an object of class \link{TextEmbeddingClassifierNeuralNet} or
 #'\link{TextEmbeddingModel}.
 #'
 #'@family Saving and Loading
 #'
+#'@importFrom utils compareVersion
+#'
 #'@export
-load_ai_model<-function(model_dir){
+load_ai_model<-function(model_dir,ml_framework="auto"){
+
+  if((ml_framework %in%c("pytorch","tensorflow","auto","not_specified"))==FALSE){
+    stop("ml_framework must be 'tensorflow', 'pytorch' or 'auto'.")
+  }
+
+  if(ml_framework=="not_specified"){
+    stop("The global machine learning framework is not set. Please use
+             aifeducation_config$set_global_ml_backend() directly after loading
+             the library to set the global framework. ")
+  }
+
   #Load the Interface to R
   interface_path=paste0(model_dir,"/r_interface.rda")
 
@@ -19,13 +36,36 @@ load_ai_model<-function(model_dir){
     loaded_model<-get(x=name_interface)
 
     if(methods::is(loaded_model,"TextEmbeddingClassifierNeuralNet")){
-      loaded_model$load_model(model_dir)
-    } else if (methods::is(loaded_model,"TextEmbeddingModel")){
-      if(loaded_model$get_model_info()$model_method%in%c("glove_cluster","lda")==FALSE){
-        loaded_model$load_model(model_dir)
-      }
+      aifeducation_version<-loaded_model$get_package_versions()[[1]]$aifeducation
+    } else {
+      aifeducation_version<-loaded_model$get_package_versions()$aifeducation
     }
-    return(loaded_model)
+
+    #For aifeducation 0.2.0 and lower-----------------------------------------
+    if(utils::compareVersion(as.character(aifeducation_version),"0.2.0")<=0){
+      if(methods::is(loaded_model,"TextEmbeddingClassifierNeuralNet")){
+        loaded_model$load_model(model_dir)
+      } else if (methods::is(loaded_model,"TextEmbeddingModel")){
+        if(loaded_model$get_model_info()$model_method%in%c("glove_cluster","lda")==FALSE){
+          loaded_model$load_model(model_dir)
+        }
+      }
+      return(loaded_model)
+    } else {
+      #For aifeducation 0.2.1 and higher-----------------------------------------
+      if(methods::is(loaded_model,"TextEmbeddingClassifierNeuralNet")){
+        loaded_model$load_model(
+          dir_path=model_dir,
+          ml_framework=ml_framework)
+      } else if (methods::is(loaded_model,"TextEmbeddingModel")){
+        if(loaded_model$get_model_info()$model_method%in%c("glove_cluster","lda")==FALSE){
+          loaded_model$load_model(
+            model_dir=model_dir,
+            ml_framework=ml_framework)
+        }
+      }
+      return(loaded_model)
+    }
   } else {
     stop("There is no file r_interface.rda in the selected directory")
   }
@@ -48,7 +88,9 @@ load_ai_model<-function(model_dir){
 #'@family Saving and Loading
 #'
 #'@export
-save_ai_model<-function(model,model_dir,save_format="tf",append_ID=TRUE){
+save_ai_model<-function(model,model_dir,
+                        save_format="keras",
+                        append_ID=TRUE){
   if(methods::is(model,"TextEmbeddingClassifierNeuralNet") |
      methods::is(model,"TextEmbeddingModel")){
 
