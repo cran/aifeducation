@@ -5,11 +5,12 @@
 \title{Function for training and fine-tuning a DeBERTa-V2 model}
 \usage{
 train_tune_deberta_v2_model(
-  ml_framework = aifeducation_config$get_framework()$TextEmbeddingFramework,
+  ml_framework = aifeducation_config$get_framework(),
   output_dir,
   model_dir_path,
   raw_texts,
   p_mask = 0.15,
+  whole_word = TRUE,
   val_size = 0.1,
   n_epoch = 1,
   batch_size = 12,
@@ -24,7 +25,9 @@ train_tune_deberta_v2_model(
   sustain_region = NULL,
   sustain_interval = 15,
   trace = TRUE,
-  keras_trace = 1
+  keras_trace = 1,
+  pytorch_trace = 1,
+  pytorch_safetensors = TRUE
 )
 }
 \arguments{
@@ -41,6 +44,9 @@ model is stored.}
 \item{raw_texts}{\code{vector} containing the raw texts for training.}
 
 \item{p_mask}{\code{double} Ratio determining the number of words/tokens for masking.}
+
+\item{whole_word}{\code{bool} \code{TRUE} if whole word masking should be applied.
+If \code{FALSE} token masking is used.}
 
 \item{val_size}{\code{double} Ratio determining the amount of token chunks used for
 validation.}
@@ -85,6 +91,14 @@ to the console.}
 information about the training process from keras on the console.
 \code{keras_trace=1} prints a progress bar. \code{keras_trace=2} prints
 one line of information for every epoch. Only relevant if \code{ml_framework="tensorflow"}.}
+
+\item{pytorch_trace}{\code{int} \code{pytorch_trace=0} does not print any
+information about the training process from pytorch on the console.
+\code{pytorch_trace=1} prints a progress bar.}
+
+\item{pytorch_safetensors}{\code{bool} If \code{TRUE} a 'pytorch' model
+is saved in safetensors format. If \code{FALSE} or 'safetensors' not available
+it is saved in the standard pytorch format (.bin). Only relevant for pytorch models.}
 }
 \value{
 This function does not return an object. Instead the trained or fine-tuned

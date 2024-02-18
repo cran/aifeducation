@@ -39,17 +39,30 @@ library(aifeducation)
 #  save_ai_model(
 #    model=topic_modeling,
 #    model_dir="text_embedding_models",
-#    append_ID=TRUE)
+#    append_ID=FALSE)
 #  
 #  save_ai_model(
 #    model=global_vector_clusters_modeling,
 #    model_dir="text_embedding_models",
-#    append_ID=TRUE)
+#    append_ID=FALSE)
 #  
 #  save_ai_model(
 #    model=bert_modeling,
 #    model_dir="text_embedding_models",
-#    append_ID=TRUE)
+#    append_ID=FALSE)
+
+## ----include = TRUE, eval=FALSE-----------------------------------------------
+#  topic_modeling<-load_ai_model(
+#    model_dir="text_embedding_models/model_topic_modeling",
+#    ml_framework=aifeducation_config$get_framework())
+#  
+#  global_vector_clusters_modeling<-load_ai_model(
+#    model_dir="text_embedding_models/model_global_vectors",
+#    ml_framework=aifeducation_config$get_framework())
+#  
+#  bert_modeling<-load_ai_model(
+#    model_dir="text_embedding_models/model_transformer_bert",
+#    ml_framework=aifeducation_config$get_framework())
 
 ## ----include = TRUE, eval=FALSE-----------------------------------------------
 #  topic_modeling<-load_ai_model(
@@ -142,10 +155,11 @@ library(aifeducation)
 #  save_ai_model(
 #    model=classifier,
 #    model_dir="classifiers",
-#    save_format = "keras",
-#    append_ID = TRUE)
+#    dir_name="movie_review_classifier",
+#    save_format = "default",
+#    append_ID = FALSE)
 
 ## ----include = TRUE, eval=FALSE-----------------------------------------------
 #  classifier<-load_ai_model(
-#    model_dir="classifiers/movie_review_classifier_ID_oWsaNEB7b09A1pPB")
+#    model_dir="classifiers/movie_review_classifier")
 

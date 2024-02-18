@@ -39,6 +39,9 @@
 #'@param sustain_interval \code{integer} Interval in seconds for measuring power
 #'usage.
 #'
+#'@param pytorch_safetensors \code{bool} If \code{TRUE} a 'pytorch' model
+#'is saved in safetensors format. If \code{FALSE} or 'safetensors' not available
+#'it is saved in the standard pytorch format (.bin). Only relevant for pytorch models.
 #'@param trace \code{bool} \code{TRUE} if information about the progress should be
 #'printed to the console.
 #'@return This function does not return an object. Instead the configuration
@@ -55,11 +58,13 @@
 #'@references Hugging Face Documentation
 #'\url{https://huggingface.co/docs/transformers/model_doc/roberta#transformers.RobertaConfig}
 #'
+#'@importFrom reticulate py_module_available
+#'
 #'@family Transformer
 #'
 #'@export
 create_roberta_model<-function(
-    ml_framework=aifeducation_config$get_framework()$TextEmbeddingFramework,
+    ml_framework=aifeducation_config$get_framework(),
     model_dir,
     vocab_raw_texts=NULL,
     vocab_size=30522,
@@ -77,7 +82,14 @@ create_roberta_model<-function(
     sustain_iso_code=NULL,
     sustain_region=NULL,
     sustain_interval=15,
-    trace=TRUE){
+    trace=TRUE,
+    pytorch_safetensors=TRUE){
+
+  #Set Shiny Progress Tracking
+  pgr_max=10
+  update_aifeducation_progress_bar(value = 0,
+                                   total = pgr_max,
+                                   title = "RoBERTa Model")
 
   #argument checking-----------------------------------------------------------
   if(max_position_embeddings>512){
@@ -98,15 +110,50 @@ create_roberta_model<-function(
              the library to set the global framework. ")
   }
 
+  if(class(vocab_raw_texts)%in%c("datasets.arrow_dataset.Dataset")==FALSE){
+    raw_text_dataset=datasets$Dataset$from_dict(
+      reticulate::dict(list(text=vocab_raw_texts))
+    )
+  } else {
+    raw_text_dataset=vocab_raw_texts
+    if(is.null(raw_text_dataset$features$text)){
+      stop("Dataset does not contain a colum 'text' storing the raw texts.")
+    }
+  }
+
   if((hidden_act %in% c("gelu", "relu", "silu","gelu_new"))==FALSE){
     stop("hidden_act must be gelu, relu, silu or gelu_new")
   }
 
-  #Start Sustainability Tracking
   if(sustain_track==TRUE){
     if(is.null(sustain_iso_code)==TRUE){
       stop("Sustainability tracking is activated but iso code for the
                country is missing. Add iso code or deactivate tracking.")
+    }
+  }
+
+  #Check possible save formats
+  if(ml_framework=="pytorch"){
+    if(pytorch_safetensors==TRUE & reticulate::py_module_available("safetensors")==TRUE){
+      pt_safe_save=TRUE
+    } else if(pytorch_safetensors==TRUE & reticulate::py_module_available("safetensors")==FALSE){
+      pt_safe_save=FALSE
+      warning("Python library 'safetensors' not available. Model will be saved
+            in the standard pytorch format.")
+    } else {
+      pt_safe_save=FALSE
+    }
+  }
+
+  update_aifeducation_progress_bar(value = 1,
+                                   total = pgr_max,
+                                   title = "RoBERTa Model")
+
+  #Start Sustainability Tracking-----------------------------------------------
+  if(sustain_track==TRUE){
+    if(trace==TRUE){
+      message(paste(date(),
+                "Start Sustainability Tracking"))
     }
     sustainability_tracker<-codecarbon$OfflineEmissionsTracker(
       country_iso_code=sustain_iso_code,
@@ -118,9 +165,22 @@ create_roberta_model<-function(
       save_to_api=FALSE
     )
     sustainability_tracker$start()
+  } else {
+    if(trace==TRUE){
+      message(paste(date(),
+                "Start without Sustainability Tracking"))
+    }
   }
 
-  #Creating a new Tokenizer for Computing Vocabulary
+  update_aifeducation_progress_bar(value = 2,
+                                   total = pgr_max,
+                                   title = "RoBERTa Model")
+
+  #Creating a new Tokenizer for Computing Vocabulary---------------------------
+  if(trace==TRUE){
+    message(paste(date(),
+              "Creating Tokenizer Draft"))
+  }
   tok_new<-tok$ByteLevelBPETokenizer(
     add_prefix_space = add_prefix_space,
     unicode_normalizer = "nfc",
@@ -128,23 +188,52 @@ create_roberta_model<-function(
     lowercase = FALSE)
   tok_new$enable_truncation(max_length = as.integer(max_position_embeddings))
   tok_new$enable_padding(pad_token = "<pad>")
-  #Calculating Vocabulary
+
+  update_aifeducation_progress_bar(value = 3,
+                                   total = pgr_max,
+                                   title = "RoBERTa Model")
+
+  #Calculating Vocabulary------------------------------------------------------
   if(trace==TRUE){
-    cat(paste(date(),
-              "Start Computing Vocabulary","\n"))
+    message(paste(date(),
+              "Start Computing Vocabulary"))
   }
-  tok_new$train_from_iterator(
-    iterator = vocab_raw_texts,
-    vocab_size = as.integer(vocab_size),
-    special_tokens=c("<s>","<pad>","</s>","<unk>","<mask>"))
+
+  reticulate::py_run_file(system.file("python/datasets_transformer_compute_vocabulary.py",
+                                      package = "aifeducation"))
+  shiny_app_active=FALSE
+  if(requireNamespace("shiny",quietly = TRUE) &
+     requireNamespace("shinyWidgets",quietly = TRUE)){
+    if(shiny::isRunning()){
+      shiny_app_active=TRUE
+    }
+  }
+  tok_new$train_from_iterator(py$batch_iterator(batch_size = as.integer(200),
+                                                dataset=raw_text_dataset,
+                                                report_to_shiny_app=shiny_app_active),
+                              #trainer=trainer,
+                              length=length(raw_text_dataset),
+                              vocab_size = as.integer(vocab_size),
+                              special_tokens=c("<s>","<pad>","</s>","<unk>","<mask>"))
+
   if(trace==TRUE){
-    cat(paste(date(),
-              "Start Computing Vocabulary - Done","\n"))
+    message(paste(date(),
+              "Start Computing Vocabulary - Done"))
+  }
+
+  update_aifeducation_progress_bar(value = 4,
+                                   total = pgr_max,
+                                   title = "RoBERTa Model")
+
+  #Saving Tokenizer Draft------------------------------------------------------
+  if(trace==TRUE){
+    message(paste(date(),
+              "Saving Draft"))
   }
 
   if(dir.exists(model_dir)==FALSE){
     if(trace==TRUE){
-      cat(paste(date(),"Creating Model Directory","\n"))
+      message(paste(date(),"Creating Model Directory"))
     }
     dir.create(model_dir)
   }
@@ -152,9 +241,13 @@ create_roberta_model<-function(
   #Saving files
   tok_new$save_model(model_dir)
 
+  update_aifeducation_progress_bar(value = 5,
+                                   total = pgr_max,
+                                   title = "RoBERTa Model")
+  #Final Tokenizer-------------------------------------------------------------
   if(trace==TRUE){
-    cat(paste(date(),
-              "Creating Tokenizer","\n"))
+    message(paste(date(),
+              "Creating Tokenizer"))
   }
   tokenizer=transformers$RobertaTokenizerFast(vocab_file = paste0(model_dir,"/","vocab.json"),
                                               merges_file = paste0(model_dir,"/","merges.txt"),
@@ -169,8 +262,17 @@ create_roberta_model<-function(
                                               trim_offsets=trim_offsets)
 
   if(trace==TRUE){
-    cat(paste(date(),
-              "Creating Tokenizer - Done","\n"))
+    message(paste(date(),
+              "Creating Tokenizer - Done"))
+  }
+
+  update_aifeducation_progress_bar(value = 6,
+                                   total = pgr_max,
+                                   title = "RoBERTa Model")
+  #Creating Transformer Model--------------------------------------------------
+  if(trace==TRUE){
+    message(paste(date(),
+              "Creating Transformer Model"))
   }
 
   configuration=transformers$RobertaConfig(
@@ -197,27 +299,46 @@ create_roberta_model<-function(
     roberta_model=transformers$RobertaModel(configuration)
   }
 
+  update_aifeducation_progress_bar(value = 7,
+                                   total = pgr_max,
+                                   title = "RoBERTa Model")
+  #Saving Model----------------------------------------------------------------
   if(trace==TRUE){
-    cat(paste(date(),
-              "Saving Roberta Model","\n"))
+    message(paste(date(),
+              "Saving Roberta Model"))
   }
-  roberta_model$save_pretrained(model_dir)
+  if(ml_framework=="tensorflow"){
+    roberta_model$build()
+    roberta_model$save_pretrained(save_directory=model_dir)
+  } else {
+    roberta_model$save_pretrained(save_directory=model_dir,
+                                     safe_serilization=pt_safe_save)
+  }
 
+  update_aifeducation_progress_bar(value = 8,
+                                   total = pgr_max,
+                                   title = "RoBERTa Model")
+
+  #Saving Tokenizer------------------------------------------------------------
   if(trace==TRUE){
-    cat(paste(date(),
-              "Saving Tokenizer Model","\n"))
+    message(paste(date(),
+              "Saving Tokenizer Model"))
   }
   tokenizer$save_pretrained(model_dir)
 
-  #Stop Sustainability Tracking if requested
+  update_aifeducation_progress_bar(value = 9,
+                                   total = pgr_max,
+                                   title = "RoBERTa Model")
+
+  #Stop Sustainability Tracking if requested------------------------------------
   if(sustain_track==TRUE){
     sustainability_tracker$stop()
     sustainability_data<-summarize_tracked_sustainability(sustainability_tracker)
     sustain_matrix=t(as.matrix(unlist(sustainability_data)))
 
     if(trace==TRUE){
-      cat(paste(date(),
-                "Saving Sustainability Data","\n"))
+      message(paste(date(),
+                "Saving Sustainability Data"))
     }
 
     write.csv(
@@ -226,9 +347,14 @@ create_roberta_model<-function(
       row.names = FALSE)
   }
 
+  update_aifeducation_progress_bar(value = 10,
+                                   total = pgr_max,
+                                   title = "RoBERTa Model")
+
+  #Finish----------------------------------------------------------------------
   if(trace==TRUE){
-    cat(paste(date(),
-              "Done","\n"))
+    message(paste(date(),
+              "Done"))
   }
 }
 
@@ -274,12 +400,18 @@ create_roberta_model<-function(
 #'@param sustain_interval \code{integer} Interval in seconds for measuring power
 #'usage.
 #'
+#'@param pytorch_safetensors \code{bool} If \code{TRUE} a 'pytorch' model
+#'is saved in safetensors format. If \code{FALSE} or 'safetensors' not available
+#'it is saved in the standard pytorch format (.bin). Only relevant for pytorch models.
 #'@param trace \code{bool} \code{TRUE} if information on the progress should be printed
 #'to the console.
 #'@param keras_trace \code{int} \code{keras_trace=0} does not print any
 #'information about the training process from keras on the console.
 #'\code{keras_trace=1} prints a progress bar. \code{keras_trace=2} prints
 #'one line of information for every epoch. Only relevant if \code{ml_framework="tensorflow"}.
+#'@param pytorch_trace \code{int} \code{pytorch_trace=0} does not print any
+#'information about the training process from pytorch on the console.
+#'\code{pytorch_trace=1} prints a progress bar.
 #'
 #'@return This function does not return an object. Instead the trained or fine-tuned
 #'model is saved to disk.
@@ -301,9 +433,10 @@ create_roberta_model<-function(
 #'
 #'@importFrom utils write.csv
 #'@importFrom utils read.csv
+#'@importFrom reticulate py_module_available
 #'
 #'@export
-train_tune_roberta_model=function(ml_framework=aifeducation_config$get_framework()$TextEmbeddingFramework,
+train_tune_roberta_model=function(ml_framework=aifeducation_config$get_framework(),
                                   output_dir,
                                model_dir_path,
                                raw_texts,
@@ -322,8 +455,15 @@ train_tune_roberta_model=function(ml_framework=aifeducation_config$get_framework
                                sustain_region=NULL,
                                sustain_interval=15,
                                trace=TRUE,
-                               keras_trace=1){
+                               keras_trace=1,
+                               pytorch_trace=1,
+                               pytorch_safetensors=TRUE){
 
+  #Set Shiny Progress Tracking
+  pgr_max=10
+  update_aifeducation_progress_bar(value = 0, total = pgr_max, title = "RoBERTa Model")
+
+  #argument checking-----------------------------------------------------------
   if((ml_framework %in%c("pytorch","tensorflow","not_specified"))==FALSE){
     stop("ml_framework must be 'tensorflow' or 'pytorch'.")
   }
@@ -334,11 +474,68 @@ train_tune_roberta_model=function(ml_framework=aifeducation_config$get_framework
              the library to set the global framework. ")
   }
 
-  #Start Sustainability Tracking
+  if(ml_framework=="tensorflow"){
+    if(file.exists(paste0(model_dir_path,"/tf_model.h5"))){
+      from_pt=FALSE
+    } else if (file.exists(paste0(model_dir_path,"/pytorch_model.bin"))|
+               file.exists(paste0(model_dir_path,"/model.safetensors"))){
+      from_pt=TRUE
+    } else {
+      stop("Directory does not contain a tf_model.h5, pytorch_model.bin or a
+           model.safetensors file.")
+    }
+  } else {
+    if(file.exists(paste0(model_dir_path,"/pytorch_model.bin"))){
+      from_tf=FALSE
+    } else if (file.exists(paste0(model_dir_path,"/tf_model.h5"))|
+               file.exists(paste0(model_dir_path,"/model.safetensors"))){
+      from_tf=TRUE
+    } else {
+      stop("Directory does not contain a tf_model.h5, pytorch_model.bin or a
+           model.safetensors file.")
+    }
+  }
+
+  #In the case of pytorch
+  #Check to load from pt/bin or safetensors
+  #Use safetensors as preferred method
+  if(ml_framework=="pytorch"){
+    if((file.exists(paste0(model_dir_path,"/model.safetensors"))==FALSE &
+        from_tf==FALSE)|
+       reticulate::py_module_available("safetensors")==FALSE){
+      load_safe=FALSE
+    } else {
+      load_safe=TRUE
+    }
+  }
+
   if(sustain_track==TRUE){
     if(is.null(sustain_iso_code)==TRUE){
       stop("Sustainability tracking is activated but iso code for the
                country is missing. Add iso code or deactivate tracking.")
+    }
+  }
+
+  #Check possible save formats
+  if(ml_framework=="pytorch"){
+    if(pytorch_safetensors==TRUE & reticulate::py_module_available("safetensors")==TRUE){
+      pt_safe_save=TRUE
+    } else if(pytorch_safetensors==TRUE & reticulate::py_module_available("safetensors")==FALSE){
+      pt_safe_save=FALSE
+      warning("Python library 'safetensors' not available. Model will be saved
+            in the standard pytorch format.")
+    } else {
+      pt_safe_save=FALSE
+    }
+  }
+
+  update_aifeducation_progress_bar(value = 1, total = pgr_max, title = "RoBERTa Model")
+
+  #Start Sustainability Tracking-----------------------------------------------
+  if(sustain_track==TRUE){
+    if(trace==TRUE){
+      message(paste(date(),
+                "Start Sustainability Tracking"))
     }
     sustainability_tracker<-codecarbon$OfflineEmissionsTracker(
       country_iso_code=sustain_iso_code,
@@ -350,33 +547,32 @@ train_tune_roberta_model=function(ml_framework=aifeducation_config$get_framework
       save_to_api=FALSE
     )
     sustainability_tracker$start()
+  } else {
+    if(trace==TRUE){
+      message(paste(date(),
+                "Start without Sustainability Tracking"))
+    }
   }
 
-  if(ml_framework=="tensorflow"){
-    if(file.exists(paste0(model_dir_path,"/tf_model.h5"))){
-      from_pt=FALSE
-    } else if (file.exists(paste0(model_dir_path,"/pytorch_model.bin"))){
-      from_pt=TRUE
-    } else {
-      stop("Directory does not contain a tf_model.h5 or pytorch_model.bin file.")
-    }
-  } else {
-    if(file.exists(paste0(model_dir_path,"/pytorch_model.bin"))){
-      from_tf=FALSE
-    } else if (file.exists(paste0(model_dir_path,"/tf_model.h5"))){
-      from_tf=TRUE
-    } else {
-      stop("Directory does not contain a tf_model.h5 or pytorch_model.bin file.")
-    }
+  update_aifeducation_progress_bar(value = 2, total = pgr_max, title = "RoBERTa Model")
+
+  #Loading existing model------------------------------------------------------
+  if(trace==TRUE){
+    message(paste(date(),
+              "Loading Existing Model"))
   }
 
   if(ml_framework=="tensorflow"){
     mlm_model=transformers$TFRobertaForMaskedLM$from_pretrained(model_dir_path, from_pt=from_pt)
   } else {
-    mlm_model=transformers$RobertaForMaskedLM$from_pretrained(model_dir_path,from_tf=from_tf)
+    mlm_model=transformers$RobertaForMaskedLM$from_pretrained(model_dir_path,
+                                                              from_tf=from_tf,
+                                                              use_safetensors=load_safe)
   }
 
   tokenizer<-transformers$RobertaTokenizerFast$from_pretrained(model_dir_path)
+
+  update_aifeducation_progress_bar(value = 3, total = pgr_max, title = "RoBERTa Model")
 
   #argument checking------------------------------------------------------------
   if(chunk_size>(mlm_model$config$max_position_embeddings)){
@@ -390,70 +586,81 @@ train_tune_roberta_model=function(ml_framework=aifeducation_config$get_framework
   #adjust chunk size. To elements are needed for begin and end of sequence
   chunk_size=chunk_size-2
 
+  update_aifeducation_progress_bar(value = 4, total = pgr_max, title = "RoBERTa Model")
+
+  #creating chunks of sequences------------------------------------------------
   if(trace==TRUE){
-    cat(paste(date(),"Creating Sequence Chunks For Training","\n"))
+    message(paste(date(),"Creating Chunks of Sequences for Training"))
   }
 
+  reticulate::py_run_file(system.file("python/datasets_transformer_prepare_data.py",
+                                      package = "aifeducation"))
+  shiny_app_active=FALSE
+  if(requireNamespace("shiny",quietly = TRUE) &
+     requireNamespace("shinyWidgets",quietly = TRUE)){
+    if(shiny::isRunning()){
+      shiny_app_active=TRUE
+    }
+  }
+
+  if(class(raw_texts)%in%c("datasets.arrow_dataset.Dataset")==FALSE){
+    #Create Dataset
+    raw_text_dataset=datasets$Dataset$from_dict(
+      reticulate::dict(
+        list(text=raw_texts)
+      )
+    )
+  }
+
+  #Preparing Data
+  tokenized_texts_raw=raw_text_dataset$map(
+    py$tokenize_raw_text,
+    batched=TRUE,
+    batch_size=2L,
+    fn_kwargs=reticulate::dict(list(
+      tokenizer=tokenizer,
+      truncation =TRUE,
+      padding= FALSE,
+      max_length=as.integer(chunk_size),
+      return_overflowing_tokens = TRUE,
+      return_length = TRUE,
+      return_special_tokens_mask=TRUE,
+      return_offsets_mapping = FALSE,
+      return_attention_mask = TRUE,
+      return_tensors="np",
+      request_word_ids=FALSE,
+      report_to_aifeducation_studio=shiny_app_active)),
+    remove_columns=raw_text_dataset$column_names
+  )
+
   if(full_sequences_only==FALSE){
-    tokenized_texts=tokenizer(raw_texts,
-                              truncation =TRUE,
-                              padding= FALSE,
-                              max_length=as.integer(chunk_size),
-                              return_overflowing_tokens = TRUE,
-                              return_length = TRUE,
-                              return_special_tokens_mask=TRUE,
-                              return_offsets_mapping = FALSE,
-                              return_attention_mask = TRUE,
-                              return_tensors="np")
-    tokenized_dataset=datasets$Dataset$from_dict(tokenized_texts)
-    relevant_indices=which(tokenized_dataset["length"]<=chunk_size & tokenized_dataset["length"]>=min_seq_len)
-
-
-    tokenized_texts=tokenizer(raw_texts,
-                              truncation =TRUE,
-                              padding= TRUE,
-                              max_length=as.integer(chunk_size),
-                              return_overflowing_tokens = TRUE,
-                              return_length = TRUE,
-                              return_special_tokens_mask=TRUE,
-                              return_offsets_mapping = FALSE,
-                              return_attention_mask = TRUE,
-                              return_tensors="np")
-    tokenized_dataset=datasets$Dataset$from_dict(tokenized_texts)
-    tokenized_dataset=tokenized_dataset$select(as.integer(relevant_indices-1))
-
+    relevant_indices=which(tokenized_texts_raw["length"]<=chunk_size & tokenized_texts_raw["length"]>=min_seq_len)
+    tokenized_dataset=tokenized_texts_raw$select(as.integer(relevant_indices-1))
   } else {
-    tokenized_texts=tokenizer(raw_texts,
-                              truncation =TRUE,
-                              padding= FALSE,
-                              max_length=as.integer(chunk_size),
-                              return_overflowing_tokens = TRUE,
-                              return_length = TRUE,
-                              return_special_tokens_mask=TRUE,
-                              return_offsets_mapping = FALSE,
-                              return_attention_mask = TRUE,
-                              return_tensors="np")
-    tokenized_dataset=datasets$Dataset$from_dict(tokenized_texts)
-    relevant_indices=which(tokenized_dataset["length"]==chunk_size)
-    tokenized_dataset=tokenized_dataset$select(as.integer(relevant_indices-1))
+    relevant_indices=which(tokenized_texts_raw["length"]==chunk_size)
+    tokenized_dataset=tokenized_texts_raw$select(as.integer(relevant_indices-1))
   }
 
   n_chunks=tokenized_dataset$num_rows
 
   if(trace==TRUE){
-    cat(paste(date(),n_chunks,"Chunks Created","\n"))
+    message(paste(date(),n_chunks,"Chunks Created"))
   }
+
+  update_aifeducation_progress_bar(value = 5, total = pgr_max, title = "RoBERTa Model")
+
+  #Seeting up DataCollator and Dataset------------------------------------------
 
   if(dir.exists(paste0(output_dir))==FALSE){
     if(trace==TRUE){
-      cat(paste(date(),"Creating Output Directory","\n"))
+      message(paste(date(),"Creating Output Directory"))
     }
     dir.create(paste0(output_dir))
   }
 
   if(dir.exists(paste0(output_dir,"/checkpoints"))==FALSE){
     if(trace==TRUE){
-      cat(paste(date(),"Creating Checkpoint Directory","\n"))
+      message(paste(date(),"Creating Checkpoint Directory"))
     }
     dir.create(paste0(output_dir,"/checkpoints"))
   }
@@ -461,7 +668,7 @@ train_tune_roberta_model=function(ml_framework=aifeducation_config$get_framework
   if(ml_framework=="tensorflow"){
 
     if(trace==TRUE){
-      cat(paste(date(),"Using Token Masking","\n"))
+      message(paste(date(),"Using Token Masking"))
     }
     data_collator=transformers$DataCollatorForLanguageModeling(
       tokenizer = tokenizer,
@@ -469,7 +676,6 @@ train_tune_roberta_model=function(ml_framework=aifeducation_config$get_framework
       mlm_probability = p_mask,
       return_tensors = "tf")
 
-    tokenized_dataset=tokenized_dataset$add_column(name="labels",column=tokenized_dataset["input_ids"])
     tokenized_dataset$set_format(type="tensorflow")
 
     tokenized_dataset=tokenized_dataset$train_test_split(test_size=val_size)
@@ -486,7 +692,7 @@ train_tune_roberta_model=function(ml_framework=aifeducation_config$get_framework
       shuffle = TRUE)
 
     if(trace==TRUE){
-      cat(paste(date(),"Preparing Training of the Model","\n"))
+      message(paste(date(),"Preparing Training of the Model"))
     }
     adam<-tf$keras$optimizers$Adam
 
@@ -499,8 +705,18 @@ train_tune_roberta_model=function(ml_framework=aifeducation_config$get_framework
       save_freq="epoch",
       save_weights_only= TRUE)
 
+    #Add Callback if Shiny App is running
+    if(requireNamespace("shiny",quietly=TRUE) & requireNamespace("shinyWidgets",quietly=TRUE)){
+      if(shiny::isRunning()){
+        shiny_app_active=TRUE
+        reticulate::py_run_file(system.file("python/keras_callbacks.py",
+                                            package = "aifeducation"))
+        callback_checkpoint=list(callback_checkpoint,py$ReportAiforeducationShiny())
+      }
+    }
+
     if(trace==TRUE){
-      cat(paste(date(),"Compile Model","\n"))
+      message(paste(date(),"Compile Model"))
     }
     mlm_model$compile(optimizer=adam(learning_rate),
                       loss="auto")
@@ -508,8 +724,11 @@ train_tune_roberta_model=function(ml_framework=aifeducation_config$get_framework
     #Clear session to provide enough resources for computations
     tf$keras$backend$clear_session()
 
+    update_aifeducation_progress_bar(value = 6, total = pgr_max, title = "RoBERTa Model")
+
+    #Start Training------------------------------------------------------------
     if(trace==TRUE){
-      cat(paste(date(),"Start Fine Tuning","\n"))
+      message(paste(date(),"Start Fine Tuning"))
     }
     mlm_model$fit(x=tf_train_dataset,
                   validation_data=tf_test_dataset,
@@ -520,13 +739,13 @@ train_tune_roberta_model=function(ml_framework=aifeducation_config$get_framework
                   verbose=as.integer(keras_trace))
 
     if(trace==TRUE){
-      cat(paste(date(),"Load Weights From Best Checkpoint","\n"))
+      message(paste(date(),"Load Weights From Best Checkpoint"))
     }
     mlm_model$load_weights(paste0(output_dir,"/checkpoints/best_weights.h5"))
   } else {
 
     if(trace==TRUE){
-      cat(paste(date(),"Using Token Masking","\n"))
+      message(paste(date(),"Using Token Masking"))
     }
     data_collator=transformers$DataCollatorForLanguageModeling(
       tokenizer = tokenizer,
@@ -534,7 +753,6 @@ train_tune_roberta_model=function(ml_framework=aifeducation_config$get_framework
       mlm_probability = p_mask,
       return_tensors = "pt")
 
-    tokenized_dataset=tokenized_dataset$add_column(name="labels",column=tokenized_dataset["input_ids"])
     tokenized_dataset$set_format(type="torch")
 
     tokenized_dataset=tokenized_dataset$train_test_split(test_size=val_size)
@@ -554,7 +772,9 @@ train_tune_roberta_model=function(ml_framework=aifeducation_config$get_framework
       per_device_eval_batch_size = as.integer(batch_size),
       save_safetensors=TRUE,
       auto_find_batch_size=FALSE,
-      report_to="none"
+      report_to="none",
+      log_level="error",
+      disable_tqdm=!pytorch_trace
     )
 
     trainer=transformers$Trainer(
@@ -567,29 +787,58 @@ train_tune_roberta_model=function(ml_framework=aifeducation_config$get_framework
     )
     trainer$remove_callback(transformers$integrations$CodeCarbonCallback)
 
+    #Add Callback if Shiny App is running
+    if(requireNamespace("shiny") & requireNamespace("shinyWidgets")){
+      if(shiny::isRunning()){
+        shiny_app_active=TRUE
+        reticulate::py_run_file(system.file("python/pytorch_transformer_callbacks.py",
+                                            package = "aifeducation"))
+        trainer$add_callback(py$ReportAiforeducationShiny_PT())
+      }
+    }
+
+    update_aifeducation_progress_bar(value = 6, total = pgr_max, title = "RoBERTa Model")
+
+    #Start Training------------------------------------------------------------
+    if(trace==TRUE){
+      message(paste(date(),"Start Fine Tuning"))
+    }
     trainer$train()
 
   }
 
-  if(trace==TRUE){
-    cat(paste(date(),"Saving RoBERTa Model","\n"))
-  }
-  mlm_model$save_pretrained(save_directory=output_dir)
+  update_aifeducation_progress_bar(value = 7, total = pgr_max, title = "RoBERTa Model")
 
+  #Saving Model----------------------------------------------------------------
   if(trace==TRUE){
-    cat(paste(date(),"Saving Tokenizer","\n"))
+    message(paste(date(),"Saving RoBERTa Model"))
+  }
+  if(ml_framework=="tensorflow"){
+    mlm_model$save_pretrained(save_directory=output_dir)
+  } else {
+    mlm_model$save_pretrained(save_directory=output_dir,
+                              safe_serilization=pt_safe_save)
+  }
+
+  update_aifeducation_progress_bar(value = 8, total = pgr_max, title = "RoBERTa Model")
+
+  #Saving Tokenizer-------------------------------------------------------------
+  if(trace==TRUE){
+    message(paste(date(),"Saving Tokenizer"))
   }
   tokenizer$save_pretrained(output_dir)
 
-  #Stop Sustainability Tracking if requested
+  update_aifeducation_progress_bar(value = 9, total = pgr_max, title = "RoBERTa Model")
+
+  #Stop Sustainability Tracking if requested------------------------------------
   if(sustain_track==TRUE){
     sustainability_tracker$stop()
     sustainability_data<-summarize_tracked_sustainability(sustainability_tracker)
     sustain_matrix=t(as.matrix(unlist(sustainability_data)))
 
     if(trace==TRUE){
-      cat(paste(date(),
-                "Saving Sustainability Data","\n"))
+      message(paste(date(),
+                "Saving Sustainability Data"))
     }
 
     sustainability_data_file_path_input=paste0(model_dir_path,"/sustainability.csv")
@@ -613,9 +862,12 @@ train_tune_roberta_model=function(ml_framework=aifeducation_config$get_framework
         row.names = FALSE)
     }
   }
+  update_aifeducation_progress_bar(value = 10, total = pgr_max, title = "RoBERTa Model")
+
+  #Finish----------------------------------------------------------------------
 
   if(trace==TRUE){
-    cat(paste(date(),"Done","\n"))
+    message(paste(date(),"Done"))
   }
 
 }
