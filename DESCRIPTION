@@ -1,7 +1,7 @@
 Type: Package
 Package: aifeducation
 Title: Artificial Intelligence for Education
-Version: 0.3.1
+Version: 0.3.2
 Authors@R: c(
     person("Berding", "Florian", , "florian.berding@uni-hamburg.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-3593-1695")),
@@ -53,7 +53,7 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.1
 NeedsCompilation: yes
-Packaged: 2024-02-18 09:52:20 UTC; WissMit
+Packaged: 2024-03-15 21:13:59 UTC; WissMit
 Author: Berding Florian [aut, cre] (<https://orcid.org/0000-0002-3593-1695>),
   Pargmann Julia [ctb],
   Riebenbauer Elisabeth [ctb],
@@ -61,4 +61,4 @@ Author: Berding Florian [aut, cre] (<https://orcid.org/0000-0002-3593-1695>),
   Slopinski Andreas [ctb]
 Maintainer: Berding Florian <florian.berding@uni-hamburg.de>
 Repository: CRAN
-Date/Publication: 2024-02-18 10:40:02 UTC
+Date/Publication: 2024-03-15 21:40:02 UTC
