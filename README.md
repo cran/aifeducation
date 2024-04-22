@@ -6,7 +6,7 @@
 <!-- badges: start -->
 
 **GitHub**
-[![](https://img.shields.io/badge/devel%20version-0.3.1-green.svg)](https://github.com/fberding/iotarelr)
+[![](https://img.shields.io/badge/devel%20version-0.3.3-green.svg)](https://github.com/fberding/iotarelr)
 [![R-CMD-check](https://github.com/FBerding/aifeducation/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/FBerding/aifeducation/actions/workflows/R-CMD-check.yaml)
 **CRAN** [![CRAN
 status](https://www.r-pkg.org/badges/version/aifeducation)](https://CRAN.R-project.org/package=aifeducation)
@@ -142,6 +142,9 @@ following table provides more details:
 | Longformer                | Yes     | Yes        | Yes            |
 | Text Embedding Classifier | Yes     | Yes        | No             |
 
+Please not that tensorflow is currently supported for the following
+versions: 2.13-2.15.
+
 ## Classification Tasks
 
 ### Transforming Texts into Numbers
@@ -215,7 +218,7 @@ applying AI. These are:
 In order to deal with the problem of imbalanced data sets, the package
 integrates the *Synthetic Minority Oversampling Technique* into the
 learning process. Currently, the *Basic Synthetic Minority Oversampling
-Technique* (Chawla et al. 2002), *Density-Bases Synthetic Minority
+Technique* (Chawla et al. 2002), *Density-Based Synthetic Minority
 Oversampling Technique* (Bunkhumpornpat, Sinapiromsaran & Lursinsap
 2012), and *Adaptive Synthetic Sampling Approach for Imbalanced
 Learning* (Hem Garcia & Li 2008) are implemented via the *R* package
@@ -253,7 +256,7 @@ evaluated with the following measures and concepts:
 - Cohen’s Kappa with squared weights
 - Fleiss’ Kappa for multiple raters without exact estimation
 
-In Addition the some traditional measures from the machine learning
+In addition the some traditional measures from the machine learning
 literature are also available:
 
 - Precision
@@ -262,7 +265,7 @@ literature are also available:
 
 ## Sharing Trained AI
 
-Since the package is based on keras, tensorflow, and the transformer
+Since the package is based on torch, tensorflow, and the transformer
 libraries, every trained AI can be shared with other educators and
 researchers. The package supports an easy use of pre-trained AI within
 *R*, but also provides the possibility to export trained AI to other

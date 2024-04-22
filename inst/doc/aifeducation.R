@@ -21,32 +21,18 @@ knitr::opts_chunk$set(
 #  aifeducation::install_py_modules(envname="aifeducation",
 #                                   install="all",
 #                                   remove_first=FALSE,
-#                                   tf_version="<=2.14",
+#                                   tf_version="<=2.15",
 #                                   pytorch_cuda_version = "12.1"
 #                                   cpu_only=FALSE)
 #  
-#  #For Windows with gpu support
+#  #For Windows and MacOS
 #  aifeducation::install_py_modules(envname="aifeducation",
 #                                   install="all",
 #                                   remove_first=FALSE,
-#                                   tf_version="<=2.10",
-#                                   pytorch_cuda_version = "12.1"
-#                                   cpu_only=FALSE)
-#  #For Windows without gpu support
-#  aifeducation::install_py_modules(envname="aifeducation",
-#                                   install="all",
-#                                   remove_first=FALSE,
-#                                   tf_version="<=2.14",
+#                                   tf_version="<=2.15",
 #                                   pytorch_cuda_version = "12.1"
 #                                   cpu_only=TRUE)
 #  
-#  #For MacOS
-#  aifeducation::install_py_modules(envname="aifeducation",
-#                                   install="all",
-#                                   remove_first=FALSE,
-#                                   tf_version="<=2.14",
-#                                   pytorch_cuda_version = "12.1"
-#                                   cpu_only=TRUE)
 
 ## ----include = TRUE, eval=FALSE-----------------------------------------------
 #  aifeducation::check_aif_py_modules(print=TRUE,

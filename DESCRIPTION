@@ -1,7 +1,7 @@
 Type: Package
 Package: aifeducation
 Title: Artificial Intelligence for Education
-Version: 0.3.2
+Version: 0.3.3
 Authors@R: c(
     person("Berding", "Florian", , "florian.berding@uni-hamburg.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-3593-1695")),
@@ -42,10 +42,9 @@ Depends: R (>= 3.5.0)
 Imports: abind, foreach, doParallel, iotarelr(>= 0.1.5), irr, irrCAC,
         methods, Rcpp (>= 1.0.10), reshape2, reticulate (>= 1.34.0),
         smotefamily, stringr, rlang, utils
-Suggests: text2vec, tidytext, topicmodels, udpipe, quanteda,
-        quanteda.textmodels, knitr, rmarkdown, testthat (>= 3.0.0),
-        ggplot2, shiny, shinyFiles, shinyWidgets, shinydashboard,
-        shinyjs, fs, readtext, readxl
+Suggests: text2vec, tidytext, topicmodels, udpipe, quanteda, knitr,
+        rmarkdown, testthat (>= 3.0.0), ggplot2, shiny, shinyFiles,
+        shinyWidgets, shinydashboard, shinyjs, fs, readtext, readxl
 LinkingTo: Rcpp, RcppArmadillo
 VignetteBuilder: knitr
 Config/testthat/edition: 3
@@ -53,7 +52,7 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.1
 NeedsCompilation: yes
-Packaged: 2024-03-15 21:13:59 UTC; WissMit
+Packaged: 2024-04-20 19:54:50 UTC; WissMit
 Author: Berding Florian [aut, cre] (<https://orcid.org/0000-0002-3593-1695>),
   Pargmann Julia [ctb],
   Riebenbauer Elisabeth [ctb],
@@ -61,4 +60,4 @@ Author: Berding Florian [aut, cre] (<https://orcid.org/0000-0002-3593-1695>),
   Slopinski Andreas [ctb]
 Maintainer: Berding Florian <florian.berding@uni-hamburg.de>
 Repository: CRAN
-Date/Publication: 2024-03-15 21:40:02 UTC
+Date/Publication: 2024-04-22 18:22:50 UTC
