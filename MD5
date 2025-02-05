@@ -1,6 +1,6 @@
-099c8f2721c05adadca093a043359035 *DESCRIPTION
-762374d540f5be7c695d73315e0fad5c *NAMESPACE
-d8c787d1899896ecbfa985b7875b8f33 *NEWS.md
+d0d6ae2e365e4cb589f8d8295c3054b9 *DESCRIPTION
+29ccd84b4eb9d04e113cc6864d68ba01 *NAMESPACE
+1e3b002abc71d9c4b7598c1ce3355994 *NEWS.md
 7c6b8b8b88abc89e1223df0015bd41f2 *R/AIFEBaseModel.R
 da16adc46decc38b7d2cdf907162bf72 *R/AIFETransformerMaker.R
 557c21c8c5d68e3363de92ec5ac53887 *R/DataManager.R
@@ -17,13 +17,13 @@ d3226f6f6eaaba9332c854eaeebbfb7c *R/Studio_BaseModel_TCardBaseModel.R
 d16eb0d6ce9f624ac6785b50e0072b3a *R/Studio_BaseModel_TCardDataset.R
 138602784bcdbf236d4e77aebf1434ea *R/Studio_BaseModel_TCardTrainTuneSettings.R
 3f14d1346a36640914342ff7b9e42df7 *R/Studio_BaseModel_Train.R
-eb5834be122997951d8ae0446c77ad9b *R/Studio_Classifier_Create.R
+df720b8398c63f74b22b08f5408b2711 *R/Studio_Classifier_Create.R
 586b0d8489f5aa5f3fea5753eafbfdfb *R/Studio_Classifier_Use.R
 4c5c5fd2e8da5e57748df42b9e79e85d *R/Studio_DocumentationPage.R
 1952f3bc017427eb1bd311bf6328cf27 *R/Studio_ErrorModal_ProcessModal.R
 b64af12dc66994d5b3158ddfb8467573 *R/Studio_Error_Checks.R
 c58fe5fc04385e4d0329c7573b463bdc *R/Studio_ExtendedTasks.R
-97ded2cb3d3f4651f84178b4950a117c *R/Studio_FeatureExtractor_Create.R
+b22a43d694688e3c5032b2a7e3db704d *R/Studio_FeatureExtractor_Create.R
 869cfb42ec7568701460b4e4f7416878 *R/Studio_FeatureExtractor_Use.R
 9e9658799b34214485597af29f1ec410 *R/Studio_Home.R
 bed9c6a3d22445ea1a99e7f817d78886 *R/Studio_License.R
@@ -31,7 +31,7 @@ a6d664d090471224709d90667af7cc9c *R/Studio_ProgressModal.R
 ce4665da084d76308300caa1af2aa274 *R/Studio_SaveModal.R
 411b76851c67628ec536672b852190e0 *R/Studio_Tabs_Classifier_Predict.R
 a68eaa15a45e4245b3663671f5a2db90 *R/Studio_Tabs_DM_CreateTextDataSet.R
-e68821ba75ece222e3faf86f4abb5e02 *R/Studio_Tabs_DM_DataSetEditor.R
+51e4abc051e2d98e83ba98e7cf0371a7 *R/Studio_Tabs_DM_DataSetEditor.R
 7d753aadc8bd8c15b883e70f93fa4c60 *R/Studio_Tabs_DM_TableEditor.R
 23ccb76348a57685cb3d2eab09e672bc *R/Studio_Tabs_Description.R
 f02abfc7c51315a00ba427b7b41811dd *R/Studio_Tabs_Embed.R
@@ -44,7 +44,7 @@ e2a5781655173ad69fdab4a66b01aefb *R/Studio_TextEmbeddingModel_Create.R
 100d6f0e8f12e3fa9cc59337ceacacd8 *R/TEClassifierProtoNet.R
 426fcf020d719916a4792759fe753ec2 *R/TEClassifierRegular.R
 28b14324ef1f76c78ac9b4e6fcb97ecf *R/TextEmbeddingModel.R
-3ef2fb364cd9d80f3a22d3e6de31671a *R/data.R
+1a7b6cf650f473d1ac994f8b1a01ac88 *R/data.R
 9932bc216edf9c309ad7aea5e0837ee7 *R/dotAIFEBaseTransformer.R
 da0e9d48b9b483729f073ed9efbf5020 *R/dotAIFEBertTransfomer.R
 43753da6246b28373dc352790c122a1f *R/dotAIFECustomTransformer.R
@@ -54,11 +54,10 @@ defc6bd706e58335e94e225d6e60821b *R/dotAIFELongformerTransformer.R
 8a3c5e9afbbb06858d87ff34d13c60ef *R/dotAIFEMpnetTransformer.R
 b5d2835edacddb6abcd8b98b5dc249e2 *R/dotAIFERobertaTransformer.R
 536e8e01338fc74f8b6b4abef2ac2aba *R/install_and_config.R
-161d12dd166ce5f40ba27d8208b5ffbd *R/onLoad.R
+480c6c33690951c4acf26075755e94fa *R/onLoad.R
 60cffcb9e571d955fb5d4d97d61ab302 *R/performance_measures.R
 c09fbdca4545e41175e635091bbe48a4 *R/saving_and_loading.R
-4ef23b71f2ed1b9f1b990da4b671eb68 *R/sustainability.R
-2d2e90aac3f51fcb7b35320cbb0049e8 *R/sysdata.rda
+517e7ccfa71cdbbfb131f05e378946ca *R/sustainability.R
 0390044721f8aaef612166e7ae92dc6c *R/utils_DataManager.R
 3fe1df2adf25ba30b4aaf8ae577526b6 *R/utils_LargeDataSets.R
 13d1a510b169f66fd778bf94e30e24d8 *R/utils_Studio.R
@@ -69,7 +68,7 @@ c1dc3ff52d0aafb66eeb054d408561b1 *R/utils_doc_helpers.R
 b556136e9c3abec35d9ba82fe5858898 *R/utils_log.R
 aa1faba5abc5ac8c1eeb22299d0133b2 *R/utils_python_conda.R
 d52e9db09144e208ba15325d13b5d9fe *R/utils_transformer.R
-b01cabce5962541395e4c33e59b8de60 *README.md
+d5c50984f58b7e6bc62d921306614096 *README.md
 1dda19015f0aa969acee990c150e3ac9 *build/partial.rdb
 67066b920482bb2caa12c9eea02cb795 *build/vignette.rds
 f37d7f43098622f0cf01b2b4fd7cc3e9 *data/imdb_movie_reviews.rda
@@ -94,7 +93,7 @@ ce29556e3e51c9af8df168e6a60aa71e *inst/python/py_log.py
 65f17998dd35c763ad6247eb5ab8e68c *inst/python/pytorch_te_classifier.py
 324f4f8ca9b99ec4392fcb4c4f98b2c8 *inst/python/pytorch_te_protonet.py
 97d88226572af90a41ccd18434d4a1e6 *inst/python/pytorch_transformer_callbacks.py
-af91a32dc51e69f0cef02042cb7aa995 *inst/studio_app/app.r
+a02076a8c8ead8dffda914afc1e3ed9c *inst/studio_app/app.r
 2f5e3b96fa4e8ccbfdfe44c63fb4b881 *inst/studio_app/www/studio_logo.jpg
 ea36907639d67ed6fb1154bb8203ca05 *man/AIFEBaseModel.Rd
 da4fa33e4306746f2f637597258d0375 *man/AIFETrType.Rd
@@ -135,6 +134,7 @@ ec9093353b63e8d70eab8be505c99c52 *man/figures/logo.png
 f20138e8147cfb406a06f5b0900951de *man/figures/transformer_temp_list.png
 43539349780954ef914256d937ef433f *man/fleiss_kappa.Rd
 0d62f5f51cc88a2b402bb0cc2c97c8b9 *man/generate_id.Rd
+eca71b6c11334515e9b7713ce1aa29b9 *man/get_alpha_3_codes.Rd
 81ab4703e7776640f18ae2d4f0d56f20 *man/get_coder_metrics.Rd
 a4db5cbf9f3a83e311b3d4baf363c978 *man/get_file_extension.Rd
 89b1d9821d59546aee65772f7e444ea7 *man/get_n_chunks.Rd
@@ -148,7 +148,7 @@ f1c4f48b47db37645454ad6f0c0cc2b0 *man/get_py_package_versions.Rd
 1bb3cd6b30c620ebca8489b43edee725 *man/kripp_alpha.Rd
 cf6d3d20e8b2cab6ed3edfe612471bc6 *man/load_from_disk.Rd
 ddb2dd089feebf6ea7bb1873aa101da4 *man/long_load_target_data.Rd
-5ea23649b3c1aad6a753ad81606786d6 *man/matrix_to_array_c.Rd
+10b6a023b21f25d971d1109c139276c8 *man/matrix_to_array_c.Rd
 d4e2f9cb0a05e8feb98619ab64fb36c6 *man/output_message.Rd
 2ff540a1711b39a5c31668cf51ae2bfa *man/print_message.Rd
 d9967a6b6c3275001f9cdff252681482 *man/run_py_file.Rd
@@ -159,8 +159,8 @@ ea28ace07a006aefa8b7c5db970dbe75 *man/set_config_os_environ_logger.Rd
 cb65eaf5c2a2f428f2c6eb6cce721fde *man/set_config_tf_logger.Rd
 1a7175997bacf163b36cc0d4699b5198 *man/set_transformers_logger.Rd
 2ef95693d47869bd052ae08e4843bfcd *man/start_aifeducation_studio.Rd
-520bd9c55737cee05fd7c9d5ba5e382f *man/summarize_tracked_sustainability.Rd
-5bfafcd91b6c31aeb56ff441184c6446 *man/to_categorical_c.Rd
+863bdb9e73646059379df493a87c0394 *man/summarize_tracked_sustainability.Rd
+81edb0214738ae2d009a07ce793dafbd *man/to_categorical_c.Rd
 e5c656a418434f7c939f3a68caf7f84f *man/vignette_classifier.Rd
 7d5d1f58f265e23f8cfc1d4fb8279d33 *man/vignette_classifier_ProtoNet.Rd
 a1e3ba51f014139d974404069b79ed86 *man/vignette_classifier_sc_pl.Rd

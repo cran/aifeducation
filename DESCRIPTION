@@ -1,7 +1,7 @@
 Type: Package
 Package: aifeducation
 Title: Artificial Intelligence for Education
-Version: 1.0.1
+Version: 1.0.2
 Authors@R: c(
     person("Berding", "Florian", , "florian.berding@uni-hamburg.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-3593-1695")),
@@ -58,7 +58,7 @@ LazyData: true
 RoxygenNote: 7.3.2
 SystemRequirements: PyTorch (see vignette "Get started")
 NeedsCompilation: yes
-Packaged: 2025-01-28 10:52:44 UTC; WissMit
+Packaged: 2025-02-05 12:39:46 UTC; WissMit
 Author: Berding Florian [aut, cre] (<https://orcid.org/0000-0002-3593-1695>),
   Tykhonova Yuliia [aut] (<https://orcid.org/0009-0006-9015-1006>),
   Pargmann Julia [ctb] (<https://orcid.org/0000-0003-3616-0172>),
@@ -68,4 +68,4 @@ Author: Berding Florian [aut, cre] (<https://orcid.org/0000-0002-3593-1695>),
   Slopinski Andreas [ctb]
 Maintainer: Berding Florian <florian.berding@uni-hamburg.de>
 Repository: CRAN
-Date/Publication: 2025-01-28 11:10:02 UTC
+Date/Publication: 2025-02-05 13:00:02 UTC
