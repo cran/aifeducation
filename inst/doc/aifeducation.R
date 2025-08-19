@@ -8,9 +8,11 @@ knitr::opts_chunk$set(
 # install.packages("aifeducation")
 
 ## ----include = TRUE, eval=FALSE-----------------------------------------------
-# install_aifeducation(
-#   install_aifeducation_studio = TRUE
-# )
+# aifeducation::install_aifeducation(
+#   install_aifeducation_studio = TRUE,
+#   python_version = "3.12",
+#   cuda_version = "12.4",
+#   use_conda = FALSE)
 
 ## ----include = TRUE, eval=FALSE-----------------------------------------------
 # reticulate::py_available(initialize = TRUE)
@@ -19,11 +21,16 @@ knitr::opts_chunk$set(
 # aifeducation::check_aif_py_modules()
 
 ## ----include = TRUE, eval=FALSE-----------------------------------------------
-# reticulate::use_condaenv(condaenv = "aifeducation")
-# library(aifeducation)
+# aifeducation::start_aifeducation_studio()
 
 ## ----include = TRUE, eval=FALSE-----------------------------------------------
-# aifeducation::install_py_modules(
-#   remove_first = TRUE
-# )
+# library(aifeducation)
+# aifeducation::prepare_session()
+
+## ----include = TRUE, eval=FALSE-----------------------------------------------
+# aifeducation::update_aifeducation(
+#   update_aifeducation_studio = TRUE,
+#   env_type = "auto",
+#   cuda_version = "12.4",
+#   envname = "aifeducation")
 
