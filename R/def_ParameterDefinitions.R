@@ -11,59 +11,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>
 
-#' @title Class names of all classifier models based on text embeddings
-#' @description `vector` containing all class names as a string.
-#' @family Parameter Dictionary
-#' @keywords internal
-#' @noRd
-TEClassifiers_class_names <- c()
-
-#' @title Get names of classifiers
-#' @description Function returns the names of all classifiers which
-#' are child classes of a specific super class.
-#' @param super_class `string` Name of the super class the classifiers should
-#' be child of. To request the names of all classifiers set this argument to `NULL`.
-#' @return Returns a vector containing the names of the classifiers.
-#' @family Parameter Dictionary
-#' @export
-get_TEClassifiers_class_names <- function(super_class = NULL) {
-  if (is.null(super_class)) {
-    return(TEClassifiers_class_names)
-  } else {
-    class_names <- NULL
-    for (class in TEClassifiers_class_names) {
-      object <- create_object(class)
-      if (super_class %in% class(object)) {
-        class_names <- append(
-          x = class_names,
-          values = class
-        )
-      }
-    }
-    return(class_names)
-  }
-}
-
-
-#' @title Names of all deprecated objects
-#'
-#' @description `vector` containing all class names as a string.
-#'
-#' @family Parameter Dictionary
-#' @keywords internal
-#' @noRd
-DeprecatedObjects <- c("TEClassifierProtoNet", "TEClassifierRegular")
-
-
-#' @title Get names of deprecated objects
-#' @description Function returns the names of all objects that are deprecated.
-#' @return Returns a `vector` containing the names.
-#' @family Parameter Dictionary
-#' @export
-get_depr_obj_names <- function() {
-  return(DeprecatedObjects)
-}
-
 #' @title Get dictionary of all parameters
 #' @description Function provides a `list` containing important characteristics
 #' of the parameter used in the models. The `list` does contain only the definition of
@@ -106,6 +53,7 @@ get_param_dict <- function() {
     is generated automatically.",
     default_value = NULL
   )
+  param$model_name <- param$name
 
   param$label <- list(
     type = "string",
@@ -116,12 +64,259 @@ get_param_dict <- function() {
     desc = "Label for the new model. Here you can use free text.",
     default_value = NULL
   )
+  param$model_label <- param$label
+
+
+  param$model_language <- list(
+    type = "string",
+    allow_null = FALSE,
+    min = NULL,
+    max = NULL,
+    allowed_values = NULL,
+    desc = "Languages that the models can work with.",
+    default_value = NULL
+  )
+
+  param$track_mode <- list(
+    type = "string",
+    allow_null = FALSE,
+    min = NULL,
+    max = NULL,
+    allowed_values = c("training", "inference"),
+    desc = "Determines the stept to which the data refer.",
+    default_value = NULL
+  )
+
+  param$token_overlap <- list(
+    type = "int",
+    min = 0L,
+    max = Inf,
+    allow_null = FALSE,
+    allowed_values = NULL,
+    desc = "Number of tokens from the previous chunk that should be added at the beginng of the next chunk.",
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = 0L,
+    default_historic = 0L
+  )
+  param$overlap <- param$token_overlap
+
+  param$max_token_sequence_length <- list(
+    type = "int",
+    min = 20L,
+    max = Inf,
+    allow_null = FALSE,
+    allowed_values = NULL,
+    desc = "Maximal number of tokens per chunk.",
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = 20L,
+    default_historic = 20L
+  )
+
+  param$max_length <- param$max_token_sequence_length
+  param$max_length$desc <- "Maximal number of token per chunks. Must be equal or lower
+  as the maximal postional embeddings for the model."
+
+  param$n_chunks <- list(
+    type = "int",
+    min = 1L,
+    max = Inf,
+    allow_null = FALSE,
+    allowed_values = NULL,
+    desc = "Maximal number chunks.",
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = 1L,
+    default_historic = 1L
+  )
+  param$chunks <- param$n_chunks
+  param$chunks$min <- 2L
+
+  param$emb_layer_min <- list(
+    type = "int",
+    min = 1L,
+    max = Inf,
+    allow_null = FALSE,
+    allowed_values = NULL,
+    desc = "Minimal layer from which the embeddings should be calculated.",
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = 1L,
+    default_historic = 1L
+  )
+
+  param$emb_layer_max <- list(
+    type = "int",
+    min = 1L,
+    max = Inf,
+    allow_null = FALSE,
+    allowed_values = NULL,
+    desc = "Maximal layer from which the embeddings should be calculated.",
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = 1L,
+    default_historic = 1L
+  )
+
+  param$emb_pool_type <- list(
+    type = "string",
+    allow_null = FALSE,
+    min = NULL,
+    max = NULL,
+    allowed_values = c("CLS", "Average"),
+    desc = "Method to summarize the embedding of single tokens into a text embedding.
+    In the case of `'CLS'` all cls-tokens between `emb_layer_min` and `emb_layer_max` are averaged.
+    In the case of `'Average'` the embeddings of all tokens are averaged.
+    Please note that BaseModelFunnel allows only 'CLS'.",
+    default_value = NULL
+  )
+
+  param$funnel_pooling_type <- list(
+    type = "string",
+    allow_null = FALSE,
+    min = NULL,
+    max = NULL,
+    allowed_values = c("Mean", "Max"),
+    desc = "Method for pooling over the seqence length.",
+    default_value = "Mean",
+    default_historic = "Mean",
+    gui_box = "Transformer Encoder Layers",
+    gui_label = "Sequence Pooling"
+  )
+
+  param$global_attn_every_n_layers <- list(
+    type = "int",
+    min = 2L,
+    max = 36L,
+    allow_null = FALSE,
+    allowed_values = NULL,
+    desc = "Number determining to use a global attention every x-th layer.",
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = 3L,
+    default_historic = 3L
+  )
+
+
+  param$statistics_max_tokens_length <- list(
+    type = "int",
+    min = 20L,
+    max = 8192L,
+    allow_null = FALSE,
+    allowed_values = NULL,
+    desc = "Maximum sequence length for calculating the statistics.",
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = 20L,
+    default_historic = 20L
+  )
+
+  param$token_encodings_only <- list(
+    type = "bool",
+    allow_null = FALSE,
+    min = 0L,
+    max = 1L,
+    allowed_values = NULL,
+    desc = "
+  * `TRUE`: Returns a `list` containg only the tokens.
+  * `FALSE`: Returns a `list` containg a list for the tokens, the number of chunks, and
+    the number potential number of chunks for each document/text.",
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = TRUE
+  )
+
+  param$token_to_int <- list(
+    type = "bool",
+    allow_null = FALSE,
+    min = 0L,
+    max = 1L,
+    allowed_values = NULL,
+    desc = "
+  * `TRUE`: Returns the tokens as `int` index.
+  * `FALSE`: Returns the tokens as `string`s.",
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = TRUE
+  )
+
+  param$to_token <- list(
+    type = "bool",
+    allow_null = FALSE,
+    min = 0L,
+    max = 1L,
+    allowed_values = NULL,
+    desc = "
+  * `FALSE`: Transforms the integers to plain text.
+  * `TRUE`: Transforms the integers to a sequence of tokens.",
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = TRUE
+  )
+
+  param$return_token_type_ids <- list(
+    type = "bool",
+    allow_null = FALSE,
+    min = 0L,
+    max = 1L,
+    allowed_values = NULL,
+    desc = "If `TRUE` additionally returns the return_token_type_ids.",
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = TRUE
+  )
+
+  param$int_seqence <- list(
+    type = "list",
+    allow_null = FALSE,
+    min = NULL,
+    max = NULL,
+    allowed_values = NULL,
+    desc = "`list` of integer sequence that should be converted to tokens.",
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = TRUE
+  )
+
+
+
   # Transformer related---------------------------------------------------------
+
+  param$tokenizer <- list(
+    type = "TokenizerBase",
+    min = NULL,
+    max = NULL,
+    allow_null = FALSE,
+    allowed_values = NULL,
+    desc = paste(
+      "Tokenizer for the model."
+    ),
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = NULL,
+    default_historic = NULL
+  )
+
+  param$base_model <- list(
+    type = "BaseModelCore",
+    min = NULL,
+    max = NULL,
+    allow_null = FALSE,
+    allowed_values = NULL,
+    desc = paste(
+      "BaseModels for processing raw texts."
+    ),
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = NULL,
+    default_historic = NULL
+  )
 
   param$pad_value <- list(
     type = "int",
     min = -Inf,
-    max = -100,
+    max = -100L,
     allow_null = FALSE,
     allowed_values = NULL,
     desc = "Value indicating padding. This value should no be in the range of
@@ -129,8 +324,8 @@ get_param_dict <- function() {
       Default is `-100`.",
     gui_box = NULL,
     gui_label = NULL,
-    default_value = -100,
-    default_historic = 0
+    default_value = -100L,
+    default_historic = 0L
   )
   param$param_pad_value <- param$pad_value
 
@@ -138,8 +333,8 @@ get_param_dict <- function() {
   param$pytorch_safetensors <- list(
     type = "bool",
     allow_null = FALSE,
-    min = 0,
-    max = 1,
+    min = 0L,
+    max = 1L,
     allowed_values = NULL,
     desc = "
   * `TRUE`: a 'pytorch' model is saved in safetensors format.
@@ -161,6 +356,20 @@ get_param_dict <- function() {
     default_value = NULL
   )
   param$output_dir <- param$model_dir
+  param$tokenizer_dir <- param$model_dir
+  param$tokenizer_dir$desc <- "Path to the directory where the tokenizer is saved."
+
+  param$folder_name <- list(
+    type = "string",
+    allow_null = FALSE,
+    min = NULL,
+    max = NULL,
+    allowed_values = NULL,
+    desc = "Name of the folder where the model should be saved.",
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = NULL
+  )
 
   param$model_dir_path <- list(
     type = "string",
@@ -175,7 +384,7 @@ get_param_dict <- function() {
   )
 
   param$text_dataset <- list(
-    type = c("LargeDataSetForText"),
+    type = "LargeDataSetForText",
     allow_null = FALSE,
     min = NULL,
     max = NULL,
@@ -186,16 +395,52 @@ get_param_dict <- function() {
     default_value = NULL
   )
 
+  param$raw_text <- list(
+    type = "vector",
+    allow_null = FALSE,
+    min = NULL,
+    max = NULL,
+    allowed_values = NULL,
+    desc = "Raw text.",
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = NULL
+  )
+
+  param$doc_id <- list(
+    type = "vector",
+    allow_null = FALSE,
+    min = NULL,
+    max = NULL,
+    allowed_values = NULL,
+    desc = "Id for every text.",
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = NULL
+  )
+
+  param$return_large_dataset <- list(
+    type = "bool",
+    allow_null = FALSE,
+    min = NULL,
+    max = NULL,
+    allowed_values = NULL,
+    desc = "If `TRUE` a [LargeDataSetForTextEmbeddings] is returned. If `FALSE` an object if class [EmbeddedText] is returned.",
+    gui_box = NULL,
+    gui_label = NULL,
+    default_value = FALSE
+  )
+
   param$vocab_size <- list(
     type = "int",
     allow_null = FALSE,
-    min = 1000,
-    max = 500000,
+    min = 1000L,
+    max = 500000L,
     allowed_values = NULL,
     desc = "Size of the vocabulary.",
     gui_box = "Vocabulary",
     gui_label = "Vocabulary Size",
-    default_value = 30000
+    default_value = 30000L
   )
 
   param$vocab_do_lower_case <- list(
@@ -204,7 +449,7 @@ get_param_dict <- function() {
     min = NULL,
     max = NULL,
     allowed_values = NULL,
-    desc = "`TRUE` if all words/tokens should be lower case.",
+    desc = "`TRUE` if all tokens should be lower case.",
     gui_box = "Vocabulary",
     gui_label = "Lower Case",
     default_value = FALSE
@@ -240,7 +485,7 @@ get_param_dict <- function() {
     min = NULL,
     max = NULL,
     allowed_values = NULL,
-    desc = "* `TRUE`: whole word masking should be applied.
+    desc = "* `TRUE`: whole word masking should be applied. Only relevant if a `WordPieceTokenizer` is used.
   * `FALSE`: token masking is used. ",
     gui_box = "Training Settings",
     gui_label = "Whole Word Masking",
@@ -262,94 +507,101 @@ get_param_dict <- function() {
   param$max_position_embeddings <- list(
     type = "int",
     allow_null = FALSE,
-    min = 10,
-    max = 4048,
+    min = 10L,
+    max = 4048L,
     allowed_values = NULL,
     desc = "Number of maximum position embeddings. This parameter also determines the maximum length of a sequence which
   can be processed with the model.",
     gui_box = "Sequence Modeling",
     gui_label = "Max Sequence Length",
-    default_value = 512
+    default_value = 512L
   )
 
   param$attention_window <- list(
     type = "int",
     allow_null = FALSE,
-    min = 2,
+    min = 2L,
     max = Inf,
     allowed_values = NULL,
     desc = "Size of the window around each token for attention mechanism in every layer.",
     gui_box = "Sequence Modeling",
     gui_label = "Attention Window",
-    default_value = 512
+    default_value = 512L
   )
 
   param$hidden_size <- list(
     type = "int",
     allow_null = FALSE,
-    min = 1,
-    max = 2048,
+    min = 1L,
+    max = 2048L,
     allowed_values = NULL,
     desc = "Number of neurons in each layer. This parameter determines the dimensionality of the resulting text
   embedding.",
     gui_box = "Transformer Encoder Layers",
     gui_label = "Hidden Size",
-    default_value = 768
+    default_value = 768L
   )
+  param$d_model <- param$hidden_size
 
   param$hidden_act <- list(
     type = "string",
     allow_null = FALSE,
     min = NULL,
     max = NULL,
-    allowed_values = c("gelu", "relu", "silu", "gelu_new"),
+    allowed_values = c("GELU", "relu", "silu", "gelu_new"),
     desc = "Name of the activation function.",
     gui_box = "Transformer Encoder Layers",
     gui_label = "Hidden Activation Function",
     default_value = "gelu"
   )
+  param$hidden_activation <- param$hidden_act
 
-  param$num_hidden_layer <- list(
+  param$num_hidden_layers <- list(
     type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     allowed_values = NULL,
     desc = "Number of hidden layers.",
     gui_box = "Transformer Encoder Layers",
     gui_label = "Number of Hidden Layers",
-    default_value = 7
+    default_value = 7L
   )
+  param$num_hidden_layer <- param$num_hidden_layers
 
   param$num_decoder_layers <- list(
     type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     allowed_values = NULL,
     desc = "Number of decoding layers.",
     gui_box = "Decoder Layers",
     gui_label = "Number of Decoding Layers",
-    default_value = 7
+    default_value = 7L
   )
 
   param$target_hidden_size <- list(
     type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     allowed_values = NULL,
-    desc = "Number of neurons in the final layer. This parameter determines the dimensionality of the resulting text
+    desc = "Number of neurons of the final layer. This parameter determines the dimensionality of the resulting text
   embedding.",
     gui_box = "Transformer Encoder Layers",
     gui_label = "Target Hidden Size",
-    default_value = 768
+    default_value = 768L
   )
+
+  param$d_head <- param$target_hidden_size
+  param$d_head$desc <- "Number of neurons of the final layer."
+  param$d_head$default_value <- 64L
 
   param$hidden_dropout_prob <- list(
     type = "double",
     allow_null = FALSE,
-    min = 0,
+    min = 0L,
     max = 0.6,
     allowed_values = NULL,
     desc = "Ratio of dropout.",
@@ -357,11 +609,16 @@ get_param_dict <- function() {
     gui_label = "Hidden Dropout",
     default_value = 0.5
   )
+  param$embedding_dropout <- param$hidden_dropout_prob
+  param$embedding_dropout$desc <- "Dropout chance for the embeddings."
+
+  param$mlp_dropout <- param$hidden_dropout_prob
+  param$mlp_dropout$desc <- "Dropout rate for the mlp layer."
 
   param$activation_dropout <- list(
     type = "double",
     allow_null = FALSE,
-    min = 0,
+    min = 0L,
     max = 0.6,
     allowed_values = NULL,
     desc = "Dropout probability between the layers of the feed-forward blocks.",
@@ -373,7 +630,7 @@ get_param_dict <- function() {
   param$attention_probs_dropout_prob <- list(
     type = "double",
     allow_null = FALSE,
-    min = 0,
+    min = 0L,
     max = 0.6,
     allowed_values = NULL,
     desc = "Ratio of dropout for attention probabilities.",
@@ -381,14 +638,15 @@ get_param_dict <- function() {
     gui_label = "Dropout for Attention Probabilities",
     default_value = 0.1
   )
+  param$attention_dropout <- param$attention_probs_dropout_prob
 
   param$p_mask <- list(
     type = "(double)",
     allow_null = FALSE,
-    min = 0,
-    max = 1,
+    min = 0L,
+    max = 1L,
     allowed_values = NULL,
-    desc = "Ratio that determines the number of words/tokens used for masking.",
+    desc = "Ratio that determines the number of tokens used for masking.",
     gui_box = "Sequence Modeling",
     gui_label = "Masking Probability",
     default_value = 0.4
@@ -397,10 +655,10 @@ get_param_dict <- function() {
   param$p_perm <- list(
     type = "(double)",
     allow_null = FALSE,
-    min = 0,
-    max = 1,
+    min = 0L,
+    max = 1L,
     allowed_values = NULL,
-    desc = "Ratio that determines the number of words/tokens used for permutation.",
+    desc = "Ratio that determines the number of tokens used for permutation.",
     gui_box = "Sequence Modeling",
     gui_label = "Permutation Probability",
     default_value = 0.4
@@ -435,27 +693,27 @@ get_param_dict <- function() {
   param$chunk_size <- list(
     type = "int",
     allow_null = FALSE,
-    min = 100,
+    min = 100L,
     max = Inf,
     allowed_values = NULL,
     desc = "Maximum length of every sequence. Must be equal or less the global maximum size
     allowed by the model.",
     gui_box = "Sequence Modeling",
     gui_label = "Max Sequence Length",
-    default_value = 256
+    default_value = 256L
   )
 
   param$min_seq_len <- list(
     type = "int",
     allow_null = FALSE,
-    min = 10,
+    min = 10L,
     max = Inf,
     allowed_values = NULL,
     desc = "Only relevant if `full_sequences_only = FALSE`. Value determines the minimal sequence length included in
   training process. ",
     gui_box = "Sequence Modeling",
     gui_label = "Min Sequence Length",
-    default_value = 10
+    default_value = 10L
   )
 
   # Data related-----------------------------------------------------------------
@@ -467,7 +725,7 @@ get_param_dict <- function() {
   param$text_embeddings <- param$data_embeddings
 
   param$data_targets <- list(
-    type = c("factor"),
+    type = "factor",
     allow_null = FALSE,
     desc = "containing the labels for cases stored in embeddings. Factor must be
       named and has to use the same names as used in in the embeddings."
@@ -487,22 +745,22 @@ get_param_dict <- function() {
   param$class_levels <- param$target_levels
 
   param$data_folds <- list(
-    type = c("int"),
+    type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     desc = "determining the number of cross-fold samples.",
     gui_box = "General Settings",
     gui_label = "Number of Folds",
-    default_value = 5
+    default_value = 5L
   )
   param$folds <- param$data_folds
 
   param$data_val_size <- list(
-    type = c("(double)"),
+    type = "(double)",
     allow_null = FALSE,
-    min = 0,
-    max = 1,
+    min = 0L,
+    max = 1L,
     desc = "between 0 and 1, indicating the proportion of cases which should be
       used for the validation sample during the estimation of the model.
       The remaining cases are part of the training data.",
@@ -513,7 +771,7 @@ get_param_dict <- function() {
   param$val_size <- param$data_val_size
 
   param$loss_balance_class_weights <- list(
-    type = c("bool"),
+    type = "bool",
     allow_null = FALSE,
     desc = "If `TRUE` class weights are generated based on the frequencies of the
       training data with the method Inverse Class Frequency. If `FALSE` each class has the weight 1.",
@@ -522,7 +780,7 @@ get_param_dict <- function() {
     default_value = TRUE
   )
   param$loss_balance_sequence_length <- list(
-    type = c("bool"),
+    type = "bool",
     allow_null = FALSE,
     desc = "If `TRUE` sample weights are generated for the length of sequences based on
       the frequencies of the training data with the method Inverse Class Frequency.
@@ -553,7 +811,7 @@ get_param_dict <- function() {
 
   # Synthetic cases-------------------------------------------------------------
   param$use_sc <- list(
-    type = c("bool"),
+    type = "bool",
     allow_null = FALSE,
     desc = "`TRUE` if the estimation should integrate synthetic cases. `FALSE` if not.",
     gui_box = "Synthetic Cases",
@@ -561,9 +819,9 @@ get_param_dict <- function() {
     default_value = FALSE
   )
   param$sc_method <- list(
-    type = c("string"),
+    type = "string",
     allow_null = FALSE,
-    allowed_values = c("knnor"),
+    allowed_values = "knnor",
     desc = "containing the method for generating synthetic cases.",
     gui_box = "Synthetic Cases",
     gui_label = "Method for Creating Synthetic Cases",
@@ -572,38 +830,38 @@ get_param_dict <- function() {
   param$sc_methods <- param$sc_method
 
   param$sc_min_k <- list(
-    type = c("int"),
+    type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     desc = "determining the minimal number of k which is used for creating synthetic units.",
     gui_box = "Synthetic Cases",
     gui_label = "Min k",
-    default_value = 1
+    default_value = 1L
   )
   param$sc_max_k <- list(
-    type = c("int"),
+    type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     desc = "determining the maximal number of k which is used for creating synthetic units.",
     gui_box = "Synthetic Cases",
     gui_label = "Max k",
-    default_value = 1
+    default_value = 1L
   )
 
   param$n_cores <- list(
-    type = c("int"),
+    type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     desc = "Number of cores which should be used during the calculation of synthetic cases. Only relevant if `use_sc=TRUE`.",
-    default_value = 1
+    default_value = 1L
   )
 
   # Pseudo labeling------------------------------------------------------------
   param$use_pl <- list(
-    type = c("bool"),
+    type = "bool",
     allow_null = FALSE,
     desc = "`TRUE` if the estimation should integrate pseudo-labeling. `FALSE` if not.",
     gui_box = "Pseudo Labeling",
@@ -611,57 +869,57 @@ get_param_dict <- function() {
     default_value = FALSE
   )
   param$pl_max_steps <- list(
-    type = c("int"),
+    type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     desc = "determining the maximum number of steps during pseudo-labeling.",
     gui_box = "Pseudo Labeling",
     gui_label = "Number of Steps",
-    default_value = 5
+    default_value = 5L
   )
   param$pl_anchor <- list(
     type = "double",
-    min = 0,
-    max = 1,
+    min = 0L,
+    max = 1L,
     allow_null = FALSE,
     allowed_values = NULL,
     desc = "indicating the reference point for sorting the new cases of every label.",
     gui_box = "Pseudo Labeling",
     gui_label = "Certainty Anchor Value",
-    default_value = 1
+    default_value = 1L
   )
   param$pl_max <- list(
-    type = c("(double"),
+    type = "(double",
     allow_null = FALSE,
-    min = 0,
-    max = 1,
+    min = 0L,
+    max = 1L,
     desc = "setting the maximal level of confidence for considering a case for pseudo-labeling.",
     gui_box = "Pseudo Labeling",
     gui_label = "Max Certainty",
-    default_value = 1
+    default_value = 1L
   )
   param$pl_min <- list(
-    type = c("double)"),
+    type = "double)",
     allow_null = FALSE,
-    min = 0,
-    max = 1,
+    min = 0L,
+    max = 1L,
     desc = "setting the mnimal level of confidence for considering a case for pseudo-labeling.",
     gui_box = "Pseudo Labeling",
     gui_label = "Min Certainty",
-    default_value = 0
+    default_value = 0L
   )
 
   # Sustainability--------------------------------------------------------------
   param$sustain_track <- list(
-    type = c("bool"),
+    type = "bool",
     allow_null = FALSE,
     desc = "If `TRUE` energy consumption is tracked during training via the python library 'codecarbon'.",
     gui_box = NULL,
     default_value = TRUE
   )
   param$sustain_iso_code <- list(
-    type = c("string"),
+    type = "string",
     allow_null = FALSE,
     allowed_values = NULL,
     desc = "ISO code (Alpha-3-Code) for the country. This variable must be set if
@@ -672,7 +930,7 @@ get_param_dict <- function() {
     default_value = "DEU"
   )
   param$sustain_region <- list(
-    type = c("string"),
+    type = "string",
     allow_null = TRUE,
     allowed_values = NULL,
     desc = "Region within a country. Only available for USA and Canada See the documentation of
@@ -681,14 +939,25 @@ get_param_dict <- function() {
     default_value = NULL
   )
   param$sustain_interval <- list(
-    type = c("int"),
+    type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     desc = "Interval in seconds for measuring power usage.",
     gui_box = NULL,
-    default_value = 15
+    default_value = 15L
   )
+  param$sustain_log_level <- list(
+    type = "string",
+    allow_null = FALSE,
+    allowed_values = c("debug", "info", "warning", "error", "critical"),
+    min = NULL,
+    max = NULL,
+    desc = "Level for printing information to the console.",
+    gui_box = NULL,
+    default_value = "warning"
+  )
+
 
   # Training related------------------------------------------------------------
   param$loss_cls_fct_name <- list(
@@ -699,19 +968,19 @@ get_param_dict <- function() {
     allowed_values = c("FocalLoss", "CrossEntropyLoss"),
     desc = "Name of the loss function to use during training.",
     values_desc = list(
-      "CrossEntropyLoss" = "Applies the a cross cross entropy loss.",
-      "FocalLoss" = "Applies the focal loss described by [Lin et al. 2017](https://doi.org/10.48550/arXiv.1708.02002)."
+      CrossEntropyLoss = "Applies the a cross cross entropy loss.",
+      FocalLoss = "Applies the focal loss described by [Lin et al. 2017](https://doi.org/10.48550/arXiv.1708.02002)."
     ),
     gui_box = "General Settings",
     gui_label = "Loss Function",
     default_value = "FocalLoss"
   )
   param$loss_pt_fct_name <- param$loss_cls_fct_name
-  param$loss_pt_fct_name$allowed_values <- c("MultiWayContrastiveLoss")
+  param$loss_pt_fct_name$allowed_values <- "MultiWayContrastiveLoss"
   param$loss_pt_fct_name$values_desc <- list(
-    "MultiWayContrastiveLoss" = "Applies the loss described by [Zhang et al. 2019](https://doi.org/10.1007/978-3-030-16145-3_24)."
+    MultiWayContrastiveLoss = "Applies the loss described by [Zhang et al. 2019](https://doi.org/10.1007/978-3-030-16145-3_24)."
   )
-  param$loss_pt_fct_name$default_value <- c("MultiWayContrastiveLoss")
+  param$loss_pt_fct_name$default_value <- "MultiWayContrastiveLoss"
   param$loss_pt_fct_name$gui_box <- "General Settings"
 
   param$optimizer <- list(
@@ -727,32 +996,32 @@ get_param_dict <- function() {
   )
 
   param$epochs <- list(
-    type = c("int"),
+    type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     desc = "Number of training epochs.",
     gui_box = "General Settings",
     gui_label = "Epochs",
-    default_value = 100
+    default_value = 100L
   )
   param$n_epoch <- param$epochs
 
   param$batch_size <- list(
-    type = c("int"),
+    type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     desc = "Size of the batches for training.",
     gui_box = "General Settings",
     gui_label = "Batch Size",
-    default_value = 32
+    default_value = 32L
   )
   param$lr_rate <- list(
-    type = c("(double"),
+    type = "(double",
     allow_null = FALSE,
-    min = 0,
-    max = 1,
+    min = 0L,
+    max = 1L,
     desc = "Initial learning rate for the training.",
     magnitude = 0.1,
     gui_box = "Learning Rate",
@@ -762,17 +1031,17 @@ get_param_dict <- function() {
   param$learning_rate <- param$lr_rate
 
   param$lr_warm_up_ratio <- list(
-    type = c("(double)"),
+    type = "(double)",
     allow_null = FALSE,
-    min = 0,
-    max = .50,
+    min = 0L,
+    max = 0.50,
     desc = "Number of epochs used for warm up.",
     gui_box = "Learning Rate",
     gui_label = "Warm Up Ratio",
     default_value = 0.01
   )
   param$dir_checkpoint <- list(
-    type = c("string"),
+    type = "string",
     allow_null = FALSE,
     allowed_values = NULL,
     desc = "Path to the directory where the checkpoint during training should be saved.
@@ -781,36 +1050,44 @@ get_param_dict <- function() {
 
   # Logging related-------------------------------------------------------------
   param$log_dir <- list(
-    type = c("string"),
+    type = "string",
     allow_null = TRUE,
     allowed_values = NULL,
     desc = "Path to the directory where the log files should be saved.
       If no logging is desired set this argument to `NULL`.",
     default_value = NULL
   )
+  param$log_file <- list(
+    type = "string",
+    allow_null = TRUE,
+    allowed_values = NULL,
+    desc = "Path to the file where the log files should be saved.
+      If no logging is desired set this argument to `NULL`.",
+    default_value = NULL
+  )
   param$log_write_interval <- list(
-    type = c("int"),
+    type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     desc = "Time in seconds determining the interval in which the logger should try to update
       the log files. Only relevant if `log_dir` is not `NULL`.",
-    default_value = 60
+    default_value = 60L
   )
   param$trace <- list(
-    type = c("bool"),
+    type = "bool",
     allow_null = FALSE,
     desc = "`TRUE` if information about the estimation phase should be printed to the console.",
     default_value = FALSE
   )
   param$ml_trace <- list(
     type = "int",
-    min = 0,
-    max = 1,
+    min = 0L,
+    max = 1L,
     allow_null = FALSE,
     allowed_values = NULL,
     desc = "`ml_trace=0` does not print any information about the training process from pytorch on the console.",
-    default_value = 0
+    default_value = 0L
   )
   param$pytorch_trace <- param$ml_trace
 
@@ -819,39 +1096,39 @@ get_param_dict <- function() {
     desc = " determining the number of dimensions for the embedding.",
     type = "int",
     max = Inf,
-    min = 2,
+    min = 2L,
     allow_null = FALSE,
     gui_box = "General Settings",
     gui_label = "Number of Dimensions for Embeddings",
-    default_value = 2
+    default_value = 2L
   )
   param$Ns <- list(
     type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     allowed_values = NULL,
     desc = "Number of cases for every class in the sample.",
     gui_label = "Number of Cases in the Sample",
     gui_box = "Sampling",
-    default_value = 5
+    default_value = 5L
   )
   param$Nq <- list(
     type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     allowed_values = NULL,
     desc = "Number of cases for every class in the query.",
     gui_label = "Number of Cases in the Query",
     gui_box = "Sampling",
-    default_value = 3
+    default_value = 3L
   )
   param$loss_alpha <- list(
     type = "double",
     allow_null = FALSE,
-    min = 0,
-    max = 1,
+    min = 0L,
+    max = 1L,
     allowed_values = NULL,
     desc = "Value between 0 and 1 indicating how strong the loss should focus on pulling cases to
       its corresponding prototypes or pushing cases away from other prototypes. The higher the value the more the
@@ -863,8 +1140,8 @@ get_param_dict <- function() {
   param$loss_margin <- list(
     type = "double",
     allow_null = FALSE,
-    min = 0,
-    max = 1,
+    min = 0L,
+    max = 1L,
     allowed_values = NULL,
     desc = "Value greater 0 indicating the minimal distance of every case from prototypes of other classes. Please note that
     in contrast to the orginal work by Zhang et al. (2019) this implementation
@@ -905,13 +1182,13 @@ get_param_dict <- function() {
   param$features <- list(
     type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     allowed_values = NULL,
     desc = "Number of features the model should use.",
     gui_box = "General Settings",
     gui_label = "Number of Features",
-    default_value = 64
+    default_value = 64L
   )
   param$method <- list(
     type = "string",
@@ -942,8 +1219,8 @@ get_param_dict <- function() {
   param$noise_factor <- list(
     type = "double",
     allow_null = FALSE,
-    min = 0,
-    max = 1,
+    min = 0L,
+    max = 1L,
     allowed_values = NULL,
     desc = "Value between 0 and a value lower 1 indicating how much noise should
       be added to the input during training.",
@@ -972,9 +1249,9 @@ get_param_dict <- function() {
     allow_null = FALSE,
     allowed_values = c("ResidualGate", "Addition", "None"),
     values_desc = list(
-      "None" = "Add no residual connection.",
-      "Addition" = "Adds a residual connection by adding the original input to the output.",
-      "ResidualGate" = "Adds a residucal connection by creating a weightes sum from the original input and the output.
+      None = "Add no residual connection.",
+      Addition = "Adds a residual connection by adding the original input to the output.",
+      ResidualGate = "Adds a residucal connection by creating a weightes sum from the original input and the output.
                       The weight is a learnable parameter. This type of residual connection is described by [Savarese and Figueiredo (2017)](https://home.ttic.edu/~savarese/savarese_files/Residual_Gates.pdf)."
     ),
     desc = "Type of residual connenction for all layers and stack of layers.",
@@ -991,9 +1268,9 @@ get_param_dict <- function() {
     allow_null = FALSE,
     allowed_values = c("ResidualGate", "Addition", "None"),
     values_desc = list(
-      "None" = "Add no residual connection.",
-      "Addition" = "Adds a residual connection by adding the original input to the output.",
-      "ResidualGate" = "Adds a residucal connection by creating a weightes sum from the original input and the output.
+      None = "Add no residual connection.",
+      Addition = "Adds a residual connection by adding the original input to the output.",
+      ResidualGate = "Adds a residucal connection by creating a weightes sum from the original input and the output.
                       The weight is a learnable parameter. This type of residual connection is described by [Savarese and Figueiredo (2017)](https://home.ttic.edu/~savarese/savarese_files/Residual_Gates.pdf)."
     ),
     desc = "Type of residual connenction for the complete model.",
@@ -1025,8 +1302,8 @@ get_param_dict <- function() {
     allow_null = FALSE,
     allowed_values = c("LayerNorm", "None"),
     values_desc = list(
-      "LayerNorm" = "Applies normalization as described by [Ba, Kiros, and Hinton (2016)](https://doi.org/10.48550/arXiv.1607.06450).",
-      "None" = "Applies no normalization. "
+      LayerNorm = "Applies normalization as described by [Ba, Kiros, and Hinton (2016)](https://doi.org/10.48550/arXiv.1607.06450).",
+      None = "Applies no normalization. "
     ),
     desc = "Type of normalization applied to all layers and stack layers.",
     gui_box = "General Settings",
@@ -1057,16 +1334,16 @@ get_param_dict <- function() {
   param$cls_pooling_features <- list(
     type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     allowed_values = NULL,
     desc = "Number of features to be extracted at the end of the model.",
     gui_box = "Classifiction Pooling Layer",
     gui_label = "Size",
-    default_value = 32
+    default_value = 32L
   )
-  param$merge_pooling_features= param$cls_pooling_features
-  param$merge_pooling_features$gui_box="Merge Layer"
+  param$merge_pooling_features <- param$cls_pooling_features
+  param$merge_pooling_features$gui_box <- "Merge Layer"
 
   param$cls_pooling_type <- list(
     type = "string",
@@ -1080,8 +1357,8 @@ get_param_dict <- function() {
     default_value = "MinMax",
     default_historic = NULL
   )
-  param$merge_pooling_type=param$cls_pooling_type
-  param$merge_pooling_type$gui_box="Merge Layer"
+  param$merge_pooling_type <- param$cls_pooling_type
+  param$merge_pooling_type$gui_box <- "Merge Layer"
 
 
   # Parametrizations------------------------------------------------------------
@@ -1093,10 +1370,10 @@ get_param_dict <- function() {
     allowed_values = c("None", "OrthogonalWeights", "WeightNorm", "SpectralNorm"),
     desc = "Re-Parametrizations of the weights of layers.",
     values_desc = list(
-      "None" = "Does not apply any re-parametrizations.",
-      "OrthogonalWeights" = "Applies an orthogonal re-parametrizations of the weights with PyTorchs implemented function using orthogonal_map='matrix_exp'.",
-      "WeightNorm" = "Applies a weight norm with the default settings of PyTorch's corresponding function. Weight norm is described by [Salimans and Kingma 2016](https://doi.org/10.48550/arXiv.1602.07868).",
-      "SpectralNorm" = "Applies a spectral norm with the default settings of PyTorch's corresponding function. The norm is described by [Miyato et al. 2018](https://doi.org/10.48550/arXiv.1802.05957)."
+      None = "Does not apply any re-parametrizations.",
+      OrthogonalWeights = "Applies an orthogonal re-parametrizations of the weights with PyTorchs implemented function using orthogonal_map='matrix_exp'.",
+      WeightNorm = "Applies a weight norm with the default settings of PyTorch's corresponding function. Weight norm is described by [Salimans and Kingma 2016](https://doi.org/10.48550/arXiv.1602.07868).",
+      SpectralNorm = "Applies a spectral norm with the default settings of PyTorch's corresponding function. The norm is described by [Miyato et al. 2018](https://doi.org/10.48550/arXiv.1802.05957)."
     ),
     gui_box = "General Settings",
     gui_label = "Re-Parametrization",
@@ -1104,7 +1381,7 @@ get_param_dict <- function() {
     default_historic = "None"
   )
   param$rec_parametrizations <- param$parametrizations
-  param$rec_parametrizations$allowed_values = c("None")
+  param$rec_parametrizations$allowed_values <- "None"
   param$rec_parametrizations$gui_box <- "Recurrent Layers"
 
   param$tf_parametrizations <- param$parametrizations
@@ -1117,7 +1394,7 @@ get_param_dict <- function() {
   param$ng_conv_parametrizations$gui_box <- "Multiple N-Gram Layers"
 
   param$feat_parametrizations <- param$parametrizations
-  param$feat_parametrizations$gui_box <- "Classifiction Pooling Layer"
+  param$feat_parametrizations$gui_box <- "Feature Layer"
 
   # Bias------------------------------------------------------------------------
   param$bias <- list(
@@ -1141,7 +1418,7 @@ get_param_dict <- function() {
   param$ng_conv_bias <- param$bias
   param$ng_conv_bias$gui_box <- "Multiple N-Gram Layers"
   param$feat_bias <- param$bias
-  param$feat_bias$gui_box <- "Classifiction Pooling Layer"
+  param$feat_bias$gui_box <- "Feature Layer"
 
   # Activation functions---------------------------------------------------------
   param$act_fct <- list(
@@ -1157,13 +1434,13 @@ get_param_dict <- function() {
     default_historic = "GELU"
   )
   param$feat_act_fct <- param$act_fct
-  param$feat_act_fct$gui_box <- "Classifiction Pooling Layer"
+  param$feat_act_fct$gui_box <- "Feature Layer"
   param$ng_conv_act_fct <- param$act_fct
   param$ng_conv_act_fct$gui_box <- "Multiple N-Gram Layers"
   param$dense_act_fct <- param$act_fct
   param$dense_act_fct$gui_box <- "Dense Layers"
   param$rec_act_fct <- param$act_fct
-  param$rec_act_fct$allowed_values=c("Tanh")
+  param$rec_act_fct$allowed_values <- "Tanh"
   param$rec_act_fct$gui_box <- "Recurrent Layers"
   param$tf_act_fct <- param$act_fct
   param$tf_act_fct$gui_box <- "Transformer Encoder Layers"
@@ -1172,8 +1449,8 @@ get_param_dict <- function() {
   param$rec_dropout <- list(
     type = "double",
     allow_null = FALSE,
-    min = 0,
-    max =0.6,
+    min = 0L,
+    max = 0.6,
     allowed_values = NULL,
     desc = "determining the dropout between recurrent layers.",
     gui_box = "Recurrent Layers",
@@ -1208,25 +1485,25 @@ get_param_dict <- function() {
   param$rec_size <- list(
     type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     allowed_values = NULL,
     desc = "Number of neurons for each recurrent layer.",
     gui_box = "Recurrent Layers",
     gui_label = "Size",
-    default_value = 32
+    default_value = 32L
   )
 
   param$rec_layers <- list(
     type = "int",
     allow_null = FALSE,
-    min = 0,
+    min = 0L,
     max = Inf,
     allowed_values = NULL,
     desc = "Number of recurrent layers.",
     gui_box = "Recurrent Layers",
     gui_label = "Number of Layers",
-    default_value = 1
+    default_value = 1L
   )
   param$rec_n_layers <- param$rec_layers
 
@@ -1234,7 +1511,7 @@ get_param_dict <- function() {
   param$dense_dropout <- list(
     type = "double",
     allow_null = FALSE,
-    min = 0,
+    min = 0L,
     max = 0.6,
     allowed_values = NULL,
     desc = "determining the dropout between dense layers.",
@@ -1245,25 +1522,25 @@ get_param_dict <- function() {
   param$dense_size <- list(
     type = "int",
     allow_null = FALSE,
-    min = 1,
+    min = 1L,
     max = Inf,
     allowed_values = NULL,
     desc = "Number of neurons for each dense layer.",
     gui_box = "Dense Layers",
     gui_label = "Size",
-    default_value = 32
+    default_value = 32L
   )
 
   param$dense_layers <- list(
     type = "int",
     allow_null = FALSE,
-    min = 0,
+    min = 0L,
     max = Inf,
     allowed_values = NULL,
     desc = "Number of dense layers.",
     gui_box = "Dense Layers",
     gui_label = "Number of Layers",
-    default_value = 0
+    default_value = 0L
   )
   param$dense_n_layers <- param$dense_layers
 
@@ -1283,7 +1560,7 @@ get_param_dict <- function() {
   param$feat_dropout <- list(
     type = "double",
     allow_null = FALSE,
-    min = 0,
+    min = 0L,
     max = 0.6,
     allowed_values = NULL,
     desc = "determining the dropout for the dense projection of the feature layer.",
@@ -1293,13 +1570,14 @@ get_param_dict <- function() {
   )
 
   param$feat_size <- param$dense_size
-  param$feat_size$min <- 2
+  param$feat_size$gui_box <- "Feature Layer"
+  param$feat_size$min <- 2L
 
   # Transformer Layer------------------------------------------------------------
   param$encoder_dropout <- list(
     type = "double",
     allow_null = FALSE,
-    min = 0,
+    min = 0L,
     max = 0.6,
     allowed_values = NULL,
     desc = "determining the dropout for the dense projection within the transformer encoder layers.",
@@ -1315,29 +1593,31 @@ get_param_dict <- function() {
   param$self_attention_heads <- list(
     type = "int",
     allow_null = FALSE,
-    min = 0,
+    min = 0L,
     max = Inf,
     allowed_values = NULL,
     desc = "determining the number of attention heads for a self-attention layer. Only relevant if `attention_type='multihead'`",
     gui_box = "Transformer Encoder Layers",
     gui_label = "Number of Attention Heads",
-    default_value = 2
+    default_value = 2L
   )
   param$num_attention_heads <- param$self_attention_head
+  param$n_head <- param$self_attention_head
   param$tf_num_heads <- param$self_attention_head
 
   param$intermediate_size <- list(
     type = "int",
     allow_null = TRUE,
-    min = 1,
+    min = 1L,
     max = Inf,
     allowed_values = NULL,
     desc = "determining the size of the projection layer within a each transformer encoder.",
     gui_box = "Transformer Encoder Layers",
     gui_label = "Intermediate Size",
-    default_value = 128
+    default_value = 128L
   )
   param$tf_dense_dim <- param$intermediate_size
+  param$d_inner <- param$intermediate_size
 
   param$attention_type <- list(
     type = "string",
@@ -1373,27 +1653,29 @@ get_param_dict <- function() {
     allow_null = FALSE,
     min = NULL,
     max = NULL,
-    allowed_values = c("absolute"),
+    allowed_values = c("None", "absolute"),
     values_desc = list(
-      "absolute" = "Adds positional information by using an embedding matrix as described by Chollet, Kalinowski, and Allaire (2022, pp. 378-379).
-                  This implementation is different to the original work by [Vaswani et al. (2017)](https://doi.org/10.48550/arXiv.1706.03762)."
+      absolute = "Adds positional information by using an embedding matrix as described by Chollet, Kalinowski, and Allaire (2022, pp. 378-379).
+                  This implementation is different to the original work by [Vaswani et al. (2017)](https://doi.org/10.48550/arXiv.1706.03762).",
+      None = "No absolute positional information is added."
     ),
     desc = "Type of processing positional information.",
     gui_box = "Transformer Encoder Layers",
     gui_label = "Positional Information",
-    default_value = "absolute"
+    default_value = "absolute",
+    default_historic = "None"
   )
 
   param$repeat_encoder <- list(
     type = "int",
     allow_null = FALSE,
-    min = 0,
+    min = 0L,
     max = Inf,
     allowed_values = NULL,
     desc = "determining how many times the encoder should be added to the network.",
     gui_box = "Transformer Encoder Layers",
     gui_label = "Number of Layers",
-    default_value = 0
+    default_value = 0L
   )
   param$tf_n_layers <- param$repeat_encoder
 
@@ -1401,7 +1683,7 @@ get_param_dict <- function() {
   param$ng_conv_dropout <- list(
     type = "double",
     allow_null = FALSE,
-    min = 0,
+    min = 0L,
     max = 0.6,
     allowed_values = NULL,
     desc = "determining the dropout for n-gram convolution layers.",
@@ -1413,40 +1695,40 @@ get_param_dict <- function() {
   param$ng_conv_n_layers <- list(
     type = "int",
     allow_null = FALSE,
-    min = 0,
+    min = 0L,
     max = Inf,
     allowed_values = NULL,
     desc = "determining how many times the n-gram layers should be added to the network.",
     gui_box = "Multiple N-Gram Layers",
     gui_label = "Number of Layers",
-    default_value = 0
+    default_value = 0L
   )
   param$ng_conv_ks_min <- list(
     type = "int",
     allow_null = FALSE,
-    min = 2,
+    min = 2L,
     max = Inf,
     allowed_values = NULL,
     desc = "determining the minimal window size for n-grams.",
     gui_box = "Multiple N-Gram Layers",
     gui_label = "Smallest N-Gram",
-    default_value = 2
+    default_value = 2L
   )
   param$ng_conv_ks_max <- list(
     type = "int",
     allow_null = FALSE,
-    min = 2,
+    min = 2L,
     max = Inf,
     allowed_values = NULL,
     desc = "determining the maximal window size for n-grams.",
     gui_box = "Multiple N-Gram Layers",
     gui_label = "Biggest N-Gram",
-    default_value = 2
+    default_value = 2L
   )
 
   # Parallel specific-----------------------------------------------------------
   param$merge_attention_type <- param$attention_type
-  param$merge_attention_type$allowed_values = c("Fourier", "MultiHead")
+  param$merge_attention_type$allowed_values <- c("Fourier", "MultiHead")
   param$merge_attention_type$gui_box <- "Merge Layer"
 
   param$merge_num_heads <- param$self_attention_head
@@ -1458,7 +1740,7 @@ get_param_dict <- function() {
     allow_null = FALSE,
     min = NULL,
     max = NULL,
-    allowed_values = c("Euclidean"),
+    allowed_values = "Euclidean",
     desc = "Type of metric used for calculating the distance.",
     gui_box = "Loss",
     gui_label = "Metric Type",
@@ -1501,7 +1783,7 @@ get_param_doc_desc <- function(param_name) {
 
   desc <- param_def$desc
 
-  if (is_class == TRUE) {
+  if (is_class) {
     type <- paste0("`", param_def$type, "`")
     type <- stringi::stri_replace_all(
       str = type, replacement = "",
@@ -1517,7 +1799,7 @@ get_param_doc_desc <- function(param_name) {
       }
     } else if (param_def$type %in% c("double", "(double", "double)", "(double)")) {
       if (param_def$min != -Inf) {
-        if (param_def$type == "(double" | param_def$type == "(double)") {
+        if (param_def$type == "(double" || param_def$type == "(double)") {
           border_min <- paste(param_def$min, "<")
         } else {
           border_min <- paste(param_def$min, "<=")
@@ -1526,7 +1808,7 @@ get_param_doc_desc <- function(param_name) {
         border_min <- NULL
       }
       if (param_def$max != Inf) {
-        if (param_def$type == "double)" | param_def$type == "(double)") {
+        if (param_def$type == "double)" || param_def$type == "(double)") {
           border_max <- paste("<", param_def$max)
         } else {
           border_max <- paste("<=", param_def$max)
@@ -1581,7 +1863,7 @@ get_param_doc_desc <- function(param_name) {
 #'
 #' @family Parameter Dictionary
 #' @export
-get_called_args <- function(n = 1) {
+get_called_args <- function(n = 1L) {
   fn <- rlang::caller_fn(n)
   formal_args <- rlang::fn_fmls(fn)
   final_args <- formal_args
@@ -1602,7 +1884,7 @@ get_called_args <- function(n = 1) {
 #' max * magnitude^i for i=1,...,n_elements.
 #' Only values equal or greater `min` are returned.
 #' @family Parameter Dictionary
-get_magnitude_values <- function(magnitude, n_elements = 9, max, min) {
+get_magnitude_values <- function(magnitude, n_elements = 9L, max = NULL, min = NULL) {
   value_vector <- vector(length = n_elements)
   for (i in seq_along(value_vector)) {
     value_vector[i] <- max(min, max * magnitude^i)

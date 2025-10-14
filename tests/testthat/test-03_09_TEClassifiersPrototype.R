@@ -6,12 +6,11 @@ testthat::skip_if_not(
 
 # config------------------------------------------------------------------------
 object_class_names <- get_TEClassifiers_class_names(super_class = "TEClassifiersBasedOnProtoNet")
-#Do not use these test for the old ProtoNet Classifier
-object_class_names<-setdiff(x=object_class_names,y="TEClassifierProtoNet")
+# Do not use these test for the old ProtoNet Classifier
+object_class_names <- setdiff(x = object_class_names, y = "TEClassifierProtoNet")
 max_samples <- 20
 max_samples_CI <- 10
 
-max_samples_training <- 2
 class_range <- c(2, 3)
 
 # SetUp-------------------------------------------------------------------------
@@ -52,9 +51,10 @@ if (file.exists(root_path_feature_extractor)) {
 
 for (object_class_name in object_class_names) {
   for (n_classes in class_range) {
-
-    for (i in 1:check_adjust_n_samples_on_CI(n_samples_requested=max_samples,
-                                             n_CI = max_samples_CI)) {
+    for (i in 1:check_adjust_n_samples_on_CI(
+      n_samples_requested = max_samples,
+      n_CI = max_samples_CI
+    )) {
       test_combination <- generate_args_for_tests(
         object_name = object_class_name,
         method = "configure",
@@ -69,17 +69,18 @@ for (object_class_name in object_class_names) {
           name = NULL,
           label = "Classifier for Estimating a Postive or Negative Rating of Movie Reviews",
           sustain_interval = 30,
+          sustain_log_level = "error",
           act_fct = "ELU",
-          feat_size=64,
-          intermediate_features=10,
-          tf_dense_dim=26,
-          tf_parametrizations="None",
-          dense_parametrizations="None",
-          rec_parametrizations="None",
-          conv_parametrizations="None",
-          tf_num_heads=2,
-          ng_conv_ks_min=2,
-          ng_conv_ks_max=3,
+          feat_size = 64,
+          intermediate_features = 10,
+          tf_dense_dim = 26,
+          tf_parametrizations = "None",
+          dense_parametrizations = "None",
+          rec_parametrizations = "None",
+          conv_parametrizations = "None",
+          tf_num_heads = 2,
+          ng_conv_ks_min = 2,
+          ng_conv_ks_max = 3,
           trace = FALSE,
           epochs = 10,
           batch_size = 20,
@@ -92,6 +93,7 @@ for (object_class_name in object_class_names) {
           pl_min = 0,
           sustain_track = TRUE,
           sustain_iso_code = "DEU",
+          sustain_log_level = "error",
           data_val_size = 0.25,
           lr_rate = 1e-3,
           dense_size = 5,
@@ -99,19 +101,21 @@ for (object_class_name in object_class_names) {
           self_attention_heads = 2,
           intermediate_size = 6,
           lr_warm_up_ratio = 0.01,
-          merge_num_heads=2,
-          merge_attention_type="MultiHead"
+          merge_num_heads = 2,
+          merge_attention_type = "MultiHead"
         )
       )
 
 
       # Create test object with a given combination of args
       classifier <- create_object(object_class_name)
-      do.call(
-        what = classifier$configure,
-        args = test_combination
+      suppressMessages(
+        do.call(
+          what = classifier$configure,
+          args = test_combination
+        )
       )
-      #Predict with sample cases-------------------------------------------------
+      # Predict with sample cases-------------------------------------------------
       test_that(paste("Number of Predictions", object_class_name, get_current_args_for_print(test_combination)), {
         predictions <- classifier$predict_with_samples(
           newdata = test_embeddings,
@@ -171,7 +175,7 @@ for (object_class_name in object_class_names) {
           ml_trace = 0
         )
         expect_equal(predictions[, 1:(ncol(predictions) - 1)], predictions_2[, 1:(ncol(predictions_2) - 1)],
-                     tolerance = 1e-6
+          tolerance = 1e-6
         )
 
         # LargeDataSetForTextEmbeddings
@@ -192,11 +196,11 @@ for (object_class_name in object_class_names) {
           ml_trace = 0
         )
         expect_equal(predictions[, 1:(ncol(predictions) - 1)], predictions_2[, 1:(ncol(predictions_2) - 1)],
-                     tolerance = 1e-6
+          tolerance = 1e-6
         )
       })
 
-      if(!is.null(test_combination$attention)){
+      if (!is.null(test_combination$attention)) {
         if (test_combination$attention != "fourier") {
           test_that(paste(" - order invariance", object_class_name, get_current_args_for_print(test_combination)), {
             embeddings_ET_perm <- test_embeddings$clone(deep = TRUE)
@@ -224,7 +228,7 @@ for (object_class_name in object_class_names) {
             expect_equal(
               predictions[ids, 1:(ncol(predictions) - 1)],
               predictions_Perm[ids, 1:(ncol(predictions_Perm) - 1)],
-              tolerance = prob_precision
+              tolerance = 1e-6
             )
 
             # LargeDataSetForTextEmbeddings
@@ -249,7 +253,7 @@ for (object_class_name in object_class_names) {
               predictions_Perm[ids, 1:(ncol(predictions_Perm) - 1)],
               embeddings_s = test_embeddings_reduced,
               classes_s = target_data[[n_classes]][rownames(test_embeddings_reduced$embeddings)],
-              tolerance = prob_precision
+              tolerance = 1e-6
             )
           })
         }
@@ -303,8 +307,8 @@ for (object_class_name in object_class_names) {
         )
         for (j in seq_len(nrow(embeddings$embeddings_q))) {
           expect_equal(embeddings$embeddings_q[j, ],
-                       embeddings_perm$embeddings_q[which(perm == j), ],
-                       tolerance = 1e-5
+            embeddings_perm$embeddings_q[which(perm == j), ],
+            tolerance = 1e-5
           )
         }
       })
@@ -312,9 +316,11 @@ for (object_class_name in object_class_names) {
       test_that(paste("plot without sample cases", object_class_name, get_current_args_for_print(test_combination)), {
         # plot
         classifier <- create_object(object_class_name)
-        do.call(
-          what = classifier$configure,
-          args = test_combination
+        suppressMessages(
+          do.call(
+            what = classifier$configure,
+            args = test_combination
+          )
         )
         plot <- classifier$plot_embeddings(
           embeddings_q = test_embeddings_reduced,

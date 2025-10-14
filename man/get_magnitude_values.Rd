@@ -4,7 +4,7 @@
 \alias{get_magnitude_values}
 \title{Magnitudes of an argument}
 \usage{
-get_magnitude_values(magnitude, n_elements = 9, max, min)
+get_magnitude_values(magnitude, n_elements = 9L, max = NULL, min = NULL)
 }
 \arguments{
 \item{magnitude}{\code{double} Factor using for creating the magnitude.}
@@ -26,6 +26,9 @@ Function calculates different magnitude for a numeric argument.
 }
 \seealso{
 Other Parameter Dictionary: 
+\code{\link{BaseModelsIndex}},
+\code{\link{DataSetsIndex}},
+\code{\link{TokenizerIndex}},
 \code{\link{get_TEClassifiers_class_names}()},
 \code{\link{get_called_args}()},
 \code{\link{get_depr_obj_names}()},

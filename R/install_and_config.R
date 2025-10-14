@@ -12,6 +12,35 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>
 
+#' @title Recommended version of python packages
+#' @description Returns the minimum and maximum versions of the core
+#' python packages used in *aifeducation*. It is recommended to use packages of
+#' these version. Packages of other versions can result in errors or unexpected results.
+#'
+#' @return Returns a `data.frame` with the packages in the columns and the minimum and
+#' maximum version in the rows.
+#'
+#' @family Installation and Configuration
+#'
+#' @export
+get_recommended_py_versions <- function() {
+  py_versions <- list(
+    transformers = c("4.56.0", "4.56.2"),
+    tokenizers = c("0.22.0", "0.22.0"),
+    pandas = c("2.3.2", "2.3.2"),
+    datasets = c("3.6.0", "3.6.0"),
+    codecarbon = c("3.0.0", "3.0.4"),
+    safetensors = c("0.6.2", "0.6.2"),
+    torcheval = c("0.0.7", "0.0.7"),
+    accelerate = c("1.10.1", "1.10.1"),
+    calflops = c("0.3.2", "0.3.2")
+  )
+
+  py_versions <- as.data.frame(py_versions)
+  rownames(py_versions) <- c("min", "max")
+  return(py_versions)
+}
+
 #' @title Install aifeducation on a machine
 #' @description Function for installing 'aifeducation' on a machine.
 #'
@@ -46,24 +75,24 @@
 #' @export
 install_aifeducation <- function(install_aifeducation_studio = TRUE,
                                  python_version = "3.12",
-                                 cuda_version = "12.4",
+                                 cuda_version = "12.9",
                                  use_conda = FALSE) {
-  if (install_aifeducation_studio == TRUE) {
+  if (install_aifeducation_studio) {
     install_aifeducation_studio()
   }
 
-  if (use_conda == FALSE) {
+  if (!use_conda) {
     # install request version of python
     reticulate::install_python(
       version = python_version,
       force = FALSE
     )
   } else {
-    miniconda=try(reticulate::install_miniconda(
+    miniconda <- try(reticulate::install_miniconda(
       update = TRUE,
       force = FALSE
     ), silent = TRUE)
-    if(methods::is(object=miniconda,class2 = "try-error")){
+    if (methods::is(object = miniconda, class2 = "try-error")) {
       message("Minicond is neither installed nor updated.")
     }
   }
@@ -115,32 +144,32 @@ update_aifeducation <- function(update_aifeducation_studio = TRUE,
                                 envname = "aifeducation") {
   # Search for environment
   if (env_type == "auto") {
-    message(paste0("Try to use virtual environment '", envname, "'."))
-    if (reticulate::virtualenv_exists("aifeducation") == TRUE) {
-      message(paste0("Use virtual environment'", envname, "'."))
+    message("Try to use virtual environment '", envname, "'.")
+    if (reticulate::virtualenv_exists("aifeducation")) {
+      message("Use virtual environment'", envname, "'.")
       use_conda <- FALSE
     } else {
-      message(paste0("There is no virtual environment '", envname, "'. Try to use a conda environment with the same name."))
-      if (reticulate::condaenv_exists("aifeducation") == TRUE) {
-        message(paste("USe conda environment'", envname, "'."))
+      message("There is no virtual environment '", envname, "'. Try to use a conda environment with the same name.")
+      if (reticulate::condaenv_exists("aifeducation")) {
+        message("USe conda environment'", envname, "'.")
         use_conda <- TRUE
       } else {
         message("The requestet environment does not exists. Neither as virtual environment nor as conda environment.")
         current_env <- get_current_venv()
-        message(paste("Use the standard virtual environment", current_env))
+        message("Use the standard virtual environment", current_env)
         use_conda <- FALSE
       }
     }
   } else if (env_type == "venv") {
-    if (reticulate::virtualenv_exists("aifeducation") == TRUE) {
-      message(paste0("Use virtual environment'", envname, "'."))
+    if (reticulate::virtualenv_exists("aifeducation")) {
+      message("Use virtual environment'", envname, "'.")
       use_conda <- FALSE
     } else {
       stop("The requestet environment does not exists.")
     }
   } else if (env_type == "conda") {
-    if (reticulate::condaenv_exists("aifeducation") == TRUE) {
-      message(paste0("Use conda environment'", envname, "'."))
+    if (reticulate::condaenv_exists("aifeducation")) {
+      message("Use conda environment'", envname, "'.")
       use_conda <- TRUE
     } else {
       stop("The requestet environment does not exists.")
@@ -154,7 +183,7 @@ update_aifeducation <- function(update_aifeducation_studio = TRUE,
     pytorch_cuda_version = cuda_version
   )
 
-  if (update_aifeducation_studio == TRUE) {
+  if (update_aifeducation_studio) {
     install_aifeducation_studio()
   }
 
@@ -201,6 +230,7 @@ install_aifeducation_studio <- function() {
 #' @param safetensors_version `string` determining the desired version of the python library 'safetensors'.
 #' @param torcheval_version `string` determining the desired version of the python library 'torcheval'.
 #' @param accelerate_version `string` determining the desired version of the python library 'accelerate'.
+#' @param calflops_version `string` determining the desired version of the python library 'calflops'.
 #' @param pytorch_cuda_version `string` determining the desired version of 'cuda' for 'PyTorch'.
 #' To install 'PyTorch' without cuda set to `NULL`.
 #' @param python_version `string` Python version to use.
@@ -222,15 +252,16 @@ install_aifeducation_studio <- function() {
 #' @family Installation and Configuration
 #' @export
 install_py_modules <- function(envname = "aifeducation",
-                               transformer_version = "<=4.52.4",
-                               tokenizers_version = "<=0.21.1",
-                               pandas_version = "<=2.3.0",
+                               transformer_version = "<=4.56.1",
+                               tokenizers_version = "<=0.22.0",
+                               pandas_version = "<=2.3.2",
                                datasets_version = "<=3.6.0",
-                               codecarbon_version = "<=3.0.2",
-                               safetensors_version = "<=0.5.3",
+                               codecarbon_version = "<=3.0.4",
+                               safetensors_version = "<=0.6.2",
                                torcheval_version = "<=0.0.7",
-                               accelerate_version = "<=1.8.1",
-                               pytorch_cuda_version = "12.6",
+                               accelerate_version = "<=1.10.1",
+                               calflops_version = "<=0.3.2",
+                               pytorch_cuda_version = "12.9",
                                python_version = "3.12",
                                remove_first = FALSE,
                                use_conda = FALSE) {
@@ -240,7 +271,8 @@ install_py_modules <- function(envname = "aifeducation",
     paste0("tokenizers", tokenizers_version),
     paste0("pandas", pandas_version),
     paste0("datasets", datasets_version),
-    paste0("codecarbon", codecarbon_version)
+    paste0("codecarbon", codecarbon_version),
+    paste0("calflops", calflops_version)
   )
   relevant_modules_pt <- c(
     paste0("safetensors", safetensors_version),
@@ -249,10 +281,10 @@ install_py_modules <- function(envname = "aifeducation",
   )
 
   if (detec_os() == "mac") {
-    message(paste("Operating Systen:", "mac", "Cuda is not requested."))
+    message("Operating Systen:", "mac", "Cuda is not requested.")
     pytorch_cuda_version <- NULL
   } else {
-    message(paste("Operating Systen:", detec_os(), "Cuda is requested."))
+    message("Operating Systen:", detec_os(), "Cuda is requested.")
   }
 
   if (!is.null(pytorch_cuda_version)) {
@@ -268,13 +300,13 @@ install_py_modules <- function(envname = "aifeducation",
     pip_cuda <- NULL
   }
 
-  if (use_conda == FALSE) {
+  if (!use_conda) {
     # Use virtualenv
 
-    if (reticulate::virtualenv_exists(envname = envname) == TRUE) {
-      if (remove_first == TRUE) {
+    if (reticulate::virtualenv_exists(envname = envname)) {
+      if (remove_first) {
         reticulate::virtualenv_remove(envname = envname, confirm = FALSE)
-        Sys.sleep(5)
+        Sys.sleep(5L)
         reticulate::virtualenv_create(
           envname = envname,
           python_version = python_version
@@ -290,28 +322,28 @@ install_py_modules <- function(envname = "aifeducation",
     # Install packages
     reticulate::virtualenv_install(
       envname = envname,
-      packages = c("torch"),
+      packages = "torch",
       pip_options = pip_cuda
     )
     reticulate::virtualenv_install(
       envname = envname,
       packages = c(relevant_modules, relevant_modules_pt)
     )
-  } else if (use_conda == TRUE) {
+  } else if (use_conda) {
     # use conda
-    if (reticulate::condaenv_exists(envname = envname) == TRUE) {
-      if (remove_first == TRUE) {
+    if (reticulate::condaenv_exists(envname = envname)) {
+      if (remove_first) {
         reticulate::conda_remove(envname = envname)
         reticulate::conda_create(
           envname = envname,
-          channel = c("conda-forge"),
+          channel = "conda-forge",
           python_version = python_version
         )
       }
     } else {
       reticulate::conda_create(
         envname = envname,
-        channel = c("conda-forge"),
+        channel = "conda-forge",
         python_version = python_version
       )
     }
@@ -353,7 +385,8 @@ check_aif_py_modules <- function(trace = TRUE) {
     "transformers",
     "tokenizers",
     "datasets",
-    "codecarbon"
+    "codecarbon",
+    "calflops"
   )
   pytorch_modules <- c(
     "torch",
@@ -370,20 +403,20 @@ check_aif_py_modules <- function(trace = TRUE) {
   matrix_overview <- matrix(
     data = NA,
     nrow = length(relevant_modules),
-    ncol = 2
+    ncol = 2L
   )
   colnames(matrix_overview) <- c("module", "available")
   matrix_overview <- as.data.frame(matrix_overview)
-  for (i in seq_len(length(relevant_modules))) {
-    matrix_overview[i, 1] <- relevant_modules[i]
-    matrix_overview[i, 2] <- reticulate::py_module_available(relevant_modules[i])
+  for (i in seq_along(relevant_modules)) {
+    matrix_overview[i, 1L] <- relevant_modules[i]
+    matrix_overview[i, 2L] <- reticulate::py_module_available(relevant_modules[i])
   }
 
-  if (trace == TRUE) {
+  if (trace) {
     print(matrix_overview)
   }
 
-  if (sum(matrix_overview[, 2]) == length(relevant_modules)) {
+  if (sum(matrix_overview[, 2L]) == length(relevant_modules)) {
     return(TRUE)
   } else {
     return(FALSE)
@@ -430,32 +463,32 @@ prepare_session <- function(env_type = "auto", envname = "aifeducation") {
   if (!reticulate::py_available(FALSE)) {
     message("Python is not initalized.")
     if (env_type == "auto") {
-      message(paste0("Try to use virtual environment '", envname, "'."))
-      if (reticulate::virtualenv_exists("aifeducation") == TRUE) {
-        message(paste0("Set virtual environment to '", envname, "'."))
+      message("Try to use virtual environment '", envname, "'.")
+      if (reticulate::virtualenv_exists("aifeducation")) {
+        message("Set virtual environment to '", envname, "'.")
         reticulate::use_virtualenv("aifeducation")
       } else {
-        message(paste0("There is no virtual environment '", envname, "'. Try to use a conda environment with the same name."))
-        if (reticulate::condaenv_exists("aifeducation") == TRUE) {
-          message(paste("Set conda environment to '", envname, "'."))
+        message("There is no virtual environment '", envname, "'. Try to use a conda environment with the same name.")
+        if (reticulate::condaenv_exists("aifeducation")) {
+          message("Set conda environment to '", envname, "'.")
           reticulate::use_condaenv("aifeducation")
         } else {
           message("The requestet environment does not exists. Neither as virtual environment nor as conda environment.")
           current_env <- get_current_venv()
-          message(paste("Set the standard virtual environment", current_env))
+          message("Set the standard virtual environment", current_env)
           reticulate::use_virtualenv(current_env)
         }
       }
     } else if (env_type == "venv") {
-      if (reticulate::virtualenv_exists("aifeducation") == TRUE) {
-        message(paste0("Set virtual environment to '", envname, "'."))
+      if (reticulate::virtualenv_exists("aifeducation")) {
+        message("Set virtual environment to '", envname, "'.")
         reticulate::use_virtualenv("aifeducation")
       } else {
         stop("The requestet environment does not exists.")
       }
     } else if (env_type == "conda") {
-      if (reticulate::condaenv_exists("aifeducation") == TRUE) {
-        message(paste0("Set conda environment to '", envname, "'."))
+      if (reticulate::condaenv_exists("aifeducation")) {
+        message("Set conda environment to '", envname, "'.")
         reticulate::use_virtualenv("aifeducation")
       } else {
         stop("The requestet environment does not exists.")
@@ -470,22 +503,22 @@ prepare_session <- function(env_type = "auto", envname = "aifeducation") {
     current_sessions <- reticulate::py_config()
     if (current_sessions$conda == "True") {
       current_conda <- get_current_conda_env()
-      message(paste(
-        "Python is already initalized with the conda environment",
+      message(
+        "Python is already initalized with the conda environment ",
         "'", current_conda, "'."
-      ))
+      )
     } else {
       current_venv <- get_current_venv()
-      message(paste(
-        "Python is already initalized with the virtual environment",
+      message(
+        "Python is already initalized with the virtual environment ",
         "'", current_venv, "'."
-      ))
+      )
     }
     message("Try to use this environment.")
   }
 
   # Print information
-  message(paste0("Detected OS: ", detec_os()))
+  message("Detected OS: ", detec_os())
   message("Checking python packages. This can take a moment.")
   if (check_aif_py_modules(trace = FALSE)) {
     message("All necessary python packages are available.")
@@ -496,7 +529,7 @@ prepare_session <- function(env_type = "auto", envname = "aifeducation") {
   pkg_versions <- get_py_package_versions()
   message(paste(paste0(names(pkg_versions), ":"), pkg_versions, collapse = "\n"))
   message("GPU Acceleration: ", torch$cuda$is_available())
-  message(paste("Location for Temporary Files:"), create_and_get_tmp_dir())
+  message("Location for Temporary Files:", create_and_get_tmp_dir())
 }
 
 #' @title Function for detecting the OS..
@@ -511,7 +544,7 @@ detec_os <- function() {
   sys_name <- tolower(Sys.info()["sysname"])
   if (sys_name == "windows") {
     return("windows")
-  } else if (sys_name == "unix" | sys_name == "linux") {
+  } else if (sys_name == "unix" || sys_name == "linux") {
     return("linux")
   } else if (sys_name == "Darwin") {
     return("mac")

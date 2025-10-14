@@ -1,4 +1,3 @@
-tf <- NULL
 transformers <- NULL
 datasets <- NULL
 tok <- NULL
@@ -12,6 +11,7 @@ accelerate <- NULL
 safetensors <- NULL
 pandas <- NULL
 pyarrow <- NULL
+calflops <- NULL
 
 .onLoad <- function(libname, pkgname) {
   # use superassignment to update the global reference
@@ -27,14 +27,14 @@ pyarrow <- NULL
   pandas <<- reticulate::import("pandas", delay_load = TRUE)
   pyarrow <<- reticulate::import("pyarrow", delay_load = TRUE)
   codecarbon <<- reticulate::import("codecarbon", delay_load = TRUE)
+  calflops <<- reticulate::import("calflops", delay_load = TRUE)
 }
 
 
 # Message on load of the package
 packageStartupMessage(
-  "This is version 1.1.1 of aifeducation. Support for 'tensorflow' is removed.
-  If you need to use these models please use an older version of this package which
-  is available on CRAN or GitHub. Please refer to news for more details.",
+  "This is version 1.1.2 of aifeducation. The package now requires the python library 'calflops'.
+  Call aifeducation::update_aifeducation() to update your python libraries or use
+  aifeducation::install_aifeducation() to install the necessary packages.",
   appendLF = TRUE
 )
-

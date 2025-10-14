@@ -27,7 +27,7 @@
 generate_sidebar_information <- function(model) {
   ui <- shiny::tagList()
 
-  if ("TextEmbeddingModel" %in% class(model)) {
+  if (inherits(model, "TextEmbeddingModel")) {
     # Prepare output
     if (is.null(model)) {
       model_label <- NULL
@@ -35,27 +35,73 @@ generate_sidebar_information <- function(model) {
       model_label <- model$get_model_info()$model_label
     }
 
-    max_tokens <- (model$get_basic_components()$max_length - model$get_transformer_components()$overlap) *
-      model$get_transformer_components()$chunks + model$get_basic_components()$max_length
+    max_tokens <- (model$get_model_config()$max_length - model$get_model_config()$overlap) *
+      model$get_model_config()$chunks + model$get_model_config()$max_length
 
-    if (!is.null(model$get_transformer_components()$aggregation)) {
-      aggegation <- shiny::tags$p("Hidden States Aggregation: ", model$get_transformer_components()$aggregation)
+    if (!is.null(model$get_model_config()$aggregation)) {
+      aggegation <- shiny::tags$p("Hidden States Aggregation: ", model$get_model_config()$aggregation)
     } else {
       aggegation <- NULL
     }
 
-    if (!is.null(model$get_transformer_components()$emb_pool_type)) {
-      pool_type <- model$get_transformer_components()$emb_pool_type
-      min_layer <- model$get_transformer_components()$emb_layer_min
-      max_layer <- model$get_transformer_components()$emb_layer_max
+    if (!is.null(model$get_model_config()$emb_pool_type)) {
+      pool_type <- model$get_model_config()$emb_pool_type
+      min_layer <- model$get_model_config()$emb_layer_min
+      max_layer <- model$get_model_config()$emb_layer_max
     } else {
       pool_type <- NULL
       min_layer <- NULL
       max_layer <- NULL
     }
 
+    if (methods::isClass(Class = "data.frame", where = model$BaseModel$get_sustainability_data())) {
+      if (nrow(model$BaseModel$get_sustainability_data()) != 0) {
+        kwh <- round(sum(model$BaseModel$get_sustainability_data()[, "sustainability_data.total_energy_kwh"]), 3)
+      } else {
+        kwh <- "not estimated"
+      }
+    } else {
+      kwh <- "not estimated"
+    }
+
+    if (methods::isClass(Class = "data.frame", where = model$BaseModel$get_sustainability_data())) {
+      if (nrow(model$BaseModel$get_sustainability_data()) != 0) {
+        co2 <- round(sum(model$BaseModel$get_sustainability_data()[, "sustainability_data.co2eq_kg"]), 3)
+      } else {
+        co2 <- "not estimated"
+      }
+    } else {
+      co2 <- "not estimated"
+    }
+
+    ui <- shiny::tagList(
+      shiny::tags$p(shiny::tags$b("Model:")),
+      shiny::tags$p(model_label),
+      shiny::tags$hr(),
+      shiny::tags$p("# Parameter: ", model$BaseModel$count_parameter()),
+      shiny::tags$p("Method: ", model$BaseModel$get_model_type()),
+      aggegation,
+      shiny::tags$p("Max Tokens per Chunk: ", model$get_model_config()$max_length),
+      shiny::tags$p("Max Chunks: ", model$get_model_config()$chunks),
+      shiny::tags$p("Token Overlap: ", model$get_model_config()$overlap),
+      shiny::tags$p("Max Tokens: ", max_tokens),
+      shiny::tags$p("Pool Type: ", pool_type),
+      shiny::tags$p("Embedding Layers - Min: ", min_layer),
+      shiny::tags$p("Embedding Layers - Max: ", max_layer),
+      shiny::tags$hr(),
+      shiny::tags$p("Energy Consumption (kWh): ", kwh),
+      shiny::tags$p("Carbon Footprint (CO2eq. kg): ", co2)
+    )
+  } else if (inherits(model, "BaseModelCore")) {
+    # Prepare output
+    if (is.null(model)) {
+      model_label <- NULL
+    } else {
+      model_label <- model$get_model_info()$model_label
+    }
+
     if (methods::isClass(Class = "data.frame", where = model$get_sustainability_data())) {
-      if (is.na(model$get_sustainability_data()[1, 1]) == FALSE) {
+      if (nrow(model$get_sustainability_data()) != 0) {
         kwh <- round(sum(model$get_sustainability_data()[, "sustainability_data.total_energy_kwh"]), 3)
       } else {
         kwh <- "not estimated"
@@ -65,7 +111,7 @@ generate_sidebar_information <- function(model) {
     }
 
     if (methods::isClass(Class = "data.frame", where = model$get_sustainability_data())) {
-      if (is.na(model$get_sustainability_data()[1, 1]) == FALSE) {
+      if (nrow(model$get_sustainability_data()) != 0) {
         co2 <- round(sum(model$get_sustainability_data()[, "sustainability_data.co2eq_kg"]), 3)
       } else {
         co2 <- "not estimated"
@@ -79,29 +125,21 @@ generate_sidebar_information <- function(model) {
       shiny::tags$p(model_label),
       shiny::tags$hr(),
       shiny::tags$p("# Parameter: ", model$count_parameter()),
-      shiny::tags$p("Method: ", model$get_basic_components()$method),
-      aggegation,
-      shiny::tags$p("Max Tokens per Chunk: ", model$get_basic_components()$max_length),
-      shiny::tags$p("Max Chunks: ", model$get_transformer_components()$chunks),
-      shiny::tags$p("Token Overlap: ", model$get_transformer_components()$overlap),
-      shiny::tags$p("Max Tokens: ", max_tokens),
-      shiny::tags$p("Pool Type: ", pool_type),
-      shiny::tags$p("Embedding Layers - Min: ", min_layer),
-      shiny::tags$p("Embedding Layers - Max: ", max_layer),
+      shiny::tags$p("Method: ", model$get_model_type()),
       shiny::tags$hr(),
       shiny::tags$p("Energy Consumption (kWh): ", kwh),
       shiny::tags$p("Carbon Footprint (CO2eq. kg): ", co2)
     )
-  } else if ("ClassifiersBasedOnTextEmbeddings" %in% class(model)) {
+  } else if (inherits(model, "ClassifiersBasedOnTextEmbeddings")) {
     if (is.null(model)) {
       model_label <- NULL
     } else {
       model_label <- model$get_model_info()$model_label
     }
 
-    if (model$get_sustainability_data()$sustainability_tracked == TRUE) {
-      kwh <- round(model$get_sustainability_data()$sustainability_data$total_energy_kwh, 3)
-      co2 <- round(model$get_sustainability_data()$sustainability_data$co2eq_kg, 3)
+    if (nrow(model$get_sustainability_data()) > 0) {
+      kwh <- round(sum(model$get_sustainability_data()$sustainability_data.total_energy_kwh), 3)
+      co2 <- round(sum(model$get_sustainability_data()$sustainability_data.co2eq_kg), 3)
     } else {
       kwh <- "not estimated"
       co2 <- "not estimated"
@@ -120,11 +158,11 @@ generate_sidebar_information <- function(model) {
       shiny::tags$p("Carbon Footprint (CO2eq. kg): "),
       shiny::tags$p(co2)
     )
-  } else if ("TEFeatureExtractor" %in% class(model)) {
+  } else if (inherits(model, "TEFeatureExtractor")) {
     if (!is.null(model)) {
-      if (model$get_sustainability_data()$sustainability_tracked == TRUE) {
-        kwh <- round(model$get_sustainability_data()$sustainability_data$total_energy_kwh, 3)
-        co2 <- round(model$get_sustainability_data()$sustainability_data$co2eq_kg, 3)
+      if (nrow(model$get_sustainability_data()) > 0) {
+        kwh <- round(model$get_sustainability_data()$sustainability_data.total_energy_kwh, 3)
+        co2 <- round(model$get_sustainability_data()$sustainability_data.co2eq_kg, 3)
       } else {
         kwh <- "not estimated"
         co2 <- "not estimated"
@@ -344,26 +382,21 @@ generate_doc_input_developers <- function(ns, model, type = "developers") {
 #' @noRd
 #'
 generate_doc_input_text_editor <- function(ns, model, language = "eng", type = "abstract") {
-  # TODO (Yuliia): remove? Variable "documentation_title" is not used
   if (language == "eng") {
     if (type == "abstract") {
-      documention_title <- "Abstract English"
       documentation_keyword <- "keywords_eng"
       documention_part <- "abstract_eng"
       documentation_field <- "abstract_eng"
     } else {
-      documention_title <- "Description English"
       documention_part <- "description_eng"
       documentation_field <- "eng"
     }
   } else {
     if (type == "abstract") {
-      documention_title <- "Abstract Native"
       documentation_keyword <- "keywords_native"
       documention_part <- "abstract_native"
       documentation_field <- "abstract_native"
     } else {
-      documention_title <- "Description Native"
       documention_part <- "description_native"
       documentation_field <- "native"
     }
@@ -417,7 +450,7 @@ generate_doc_input_text_editor <- function(ns, model, language = "eng", type = "
 #'
 #' @param dir_path `string` path to the directory containing the embeddings.
 #'
-#' @return If there are any errors an error modal is displayed by calling the function [display_errors]. If there are no
+#' @return If there are any errors an error modal is displayed by calling the function `display_errors`. If there are no
 #'   errors the function returns embeddings as an object of class [LargeDataSetForTextEmbeddings] or [EmbeddedText]. In
 #'   the case of erros the function returns `NULL`.
 #'
@@ -438,8 +471,8 @@ load_and_check_embeddings <- function(dir_path) {
       Sys.sleep(1)
       embeddings <- load_from_disk(dir_path)
       if (
-        "EmbeddedText" %in% class(embeddings) ||
-          "LargeDataSetForTextEmbeddings" %in% class(embeddings)
+        inherits(embeddings, "EmbeddedText") ||
+          inherits(embeddings, "LargeDataSetForTextEmbeddings")
       ) {
         shiny::removeModal()
         return(embeddings)
@@ -486,7 +519,7 @@ load_and_check_dataset_raw_texts <- function(dir_path) {
       # Wait for modal
       Sys.sleep(1)
       data_set_raw_text <- load_from_disk(dir_path)
-      if ("LargeDataSetForText" %in% class(data_set_raw_text)) {
+      if (inherits(data_set_raw_text, "LargeDataSetForText")) {
         shiny::removeModal()
         return(data_set_raw_text)
       } else {
@@ -525,12 +558,13 @@ load_and_check_dataset_raw_texts <- function(dir_path) {
 #'
 #' @param file_path `string` path to the file containing the target data.
 #'
-#' @return If there are any errors an error modal is displayed by calling the function [display_errors]. If there are no
+#' @return If there are any errors an error modal is displayed by calling the function `display_errors`. If there are no
 #'   errors the function returns a `data.frame` containing the target data. In the case of erros the function returns
 #'   `NULL`.
 #'
 #' @importFrom stringi stri_split_fixed
 #' @importFrom stringi stri_trans_tolower
+#' @importFrom utils read.csv
 #'
 #' @family Utils Studio Developers
 #' @keywords internal
@@ -688,7 +722,7 @@ check_numeric_input <- function(input) {
 #' categories in the columns. The ids of the cases must be stored in a column called "id".
 #'
 #' @return Returns a named factor containing the target data.
-#'
+#' @importFrom utils read.csv
 #' @family Utils Studio Developers
 #' @export
 long_load_target_data <- function(file_path, selectet_column) {
@@ -806,7 +840,7 @@ create_data_raw_texts_description <- function(data_set_for_raw_texts) {
 
 create_data_base_model_description <- function(base_model) {
   ui <- bslib::value_box(
-    value = detect_base_model_type(base_model),
+    value = base_model$get_model_type(),
     title = "Base Model Type",
     showcase = shiny::icon("brain")
   )
@@ -852,7 +886,7 @@ check_and_prepare_for_studio <- function(env_type = "auto") {
   )
 
   missing_r_packages <- NULL
-  for (i in seq_len(length(r_packages))) {
+  for (i in seq_along(r_packages)) {
     if (!requireNamespace(names(r_packages)[i], quietly = TRUE, )) {
       missing_r_packages <- append(
         x = missing_r_packages,
@@ -1013,28 +1047,28 @@ create_widget_card <- function(id,
     dict_entry <- param_dict[[param]]
     if (!is.null(dict_entry$gui_label)) {
       tmp_label <- dict_entry$gui_label
-      #if (!is.null(dict_entry$values_desc)) {
-        tmp_label_with_icon <- shiny::tags$p(
-          bslib::popover(
-            #trigger = shiny::icon("info-circle"),
-            trigger = dict_entry$gui_label,
-            shiny::includeMarkdown(
-              get_parameter_documentation(
-                param_name = param,
-                param_dict = param_dict,
-                inc_param_name=FALSE,
-                as_list = FALSE
-              )
-            ),
-            options = list(
-              "trigger"="hover"#,
-              #"delay"="{'show': 0, 'hide': 500}"
+      # if (!is.null(dict_entry$values_desc)) {
+      tmp_label_with_icon <- shiny::tags$p(
+        bslib::popover(
+          # trigger = shiny::icon("info-circle"),
+          trigger = dict_entry$gui_label,
+          shiny::includeMarkdown(
+            get_parameter_documentation(
+              param_name = param,
+              param_dict = param_dict,
+              inc_param_name = FALSE,
+              as_list = FALSE
             )
+          ),
+          options = list(
+            "trigger" = "hover" # ,
+            # "delay"="{'show': 0, 'hide': 500}"
           )
         )
-      #} else {
+      )
+      # } else {
       #  tmp_label_with_icon <- dict_entry$gui_label
-      #}
+      # }
     } else {
       tmp_label <- param
       tmp_label_with_icon <- param
@@ -1090,11 +1124,11 @@ create_widget_card <- function(id,
           label = tmp_label_with_icon,
           value = dict_entry$default_value
         )
-      } else if (dict_entry$type == "double" |
-        dict_entry$type == "(double" |
-        dict_entry$type == "double)" |
+      } else if (dict_entry$type == "double" ||
+        dict_entry$type == "(double" ||
+        dict_entry$type == "double)" ||
         dict_entry$type == "(double)") {
-        if (dict_entry$min != -Inf & dict_entry$max != Inf) {
+        if (dict_entry$min != -Inf && dict_entry$max != Inf) {
           if (!is.null(dict_entry$magnitude)) {
             widget <- shiny::selectInput(
               inputId = shiny::NS(id, param),
@@ -1109,14 +1143,14 @@ create_widget_card <- function(id,
           } else {
             range <- dict_entry$max - dict_entry$min
 
-            if (dict_entry$type == "(double" |
+            if (dict_entry$type == "(double" ||
               dict_entry$type == "(double)") {
               tmp_min <- dict_entry$min + range * 0.01
             } else {
               tmp_min <- dict_entry$min
             }
 
-            if (dict_entry$type == "double)" |
+            if (dict_entry$type == "double)" ||
               dict_entry$type == "(double)") {
               tmp_max <- dict_entry$max - range * 0.01
             } else {
@@ -1147,15 +1181,15 @@ create_widget_card <- function(id,
     reduced_names <- setdiff(x = box_names, "General Settings")
     ordered_names <- c(
       "General Settings",
-      reduced_names[order(reduced_names)]
+      sort(reduced_names, na.last = TRUE)
     )
   } else {
-    ordered_names <- box_names[order(box_names)]
+    ordered_names <- sort(box_names, na.last = TRUE)
   }
   tmp_boxes <- tmp_boxes[ordered_names]
 
   # Sort Widgets
-  for (i in 1:length(tmp_boxes)) {
+  for (i in seq_along(tmp_boxes)) {
     current_box <- tmp_boxes[[i]]
     tmp_names <- names(current_box)
     # Ensure that parameters starting with use are displayed first
@@ -1165,10 +1199,10 @@ create_widget_card <- function(id,
       reduced_names <- setdiff(x = tmp_names, y = use_string)
       ordered_names <- c(
         use_string,
-        reduced_names[order(reduced_names)]
+        sort(reduced_names, na.last = TRUE)
       )
     } else {
-      ordered_names <- tmp_names[order(tmp_names)]
+      ordered_names <- sort(tmp_names, na.last = TRUE)
     }
     current_box <- current_box[ordered_names]
     tmp_boxes[i] <- list(current_box)
@@ -1176,29 +1210,29 @@ create_widget_card <- function(id,
 
   # Create boxes with widgets
   tmp_cards <- list()
-  layer_dict=get_layer_dict("all")
-  layer_labels=vector(length = length(layer_dict))
-  names(layer_labels)=names(layer_dict)
-  for(layer in names(layer_labels)){
-    layer_labels[layer]=layer_dict[[layer]]$title
+  layer_dict <- get_layer_dict("all")
+  layer_labels <- vector(length = length(layer_dict))
+  names(layer_labels) <- names(layer_dict)
+  for (layer in names(layer_labels)) {
+    layer_labels[layer] <- layer_dict[[layer]]$title
   }
 
-  for (i in 1:length(tmp_boxes)) {
-    if(names(tmp_boxes)[i]%in%layer_labels){
-      idx_current_layer=which(x=layer_labels==names(tmp_boxes)[i])
-      current_layer_name=names(layer_labels)[idx_current_layer]
-      popover_text=layer_dict[[current_layer_name]]$desc
-      current_popover=bslib::popover(
-        trigger =   shiny::icon("info-circle"),
-          shiny::includeMarkdown(popover_text)
+  for (i in seq_along(tmp_boxes)) {
+    if (names(tmp_boxes)[i] %in% layer_labels) {
+      idx_current_layer <- which(x = layer_labels == names(tmp_boxes)[i])
+      current_layer_name <- names(layer_labels)[idx_current_layer]
+      popover_text <- layer_dict[[current_layer_name]]$desc
+      current_popover <- bslib::popover(
+        trigger = shiny::icon("info-circle"),
+        shiny::includeMarkdown(popover_text)
       )
     } else {
-      current_popover=""
+      current_popover <- ""
     }
 
     tmp_cards[length(tmp_cards) + 1] <- list(
       bslib::card(
-        bslib::card_header(current_popover,names(tmp_boxes)[i]),
+        bslib::card_header(current_popover, names(tmp_boxes)[i]),
         bslib::card_body(
           # bslib::layout_column_wrap(
           tmp_boxes[[i]]
@@ -1221,6 +1255,14 @@ create_widget_card <- function(id,
     )
   )
   return(main_card)
+}
+
+extract_args_from_input <- function(input, arg_names) {
+  args_list <- list()
+  for (param in arg_names) {
+    args_list[param] <- list(input[[param]])
+  }
+  return(args_list)
 }
 
 #' @title Summarize arguments from shiny input
@@ -1291,7 +1333,7 @@ summarize_args_for_long_task <- function(input,
 
   for (param in params) {
     current_param <- param_dict[[param]]
-    if (max(current_param$type %in% c("bool", "int", "double", "(double", "double)", "(double)", "string", "vector", "list")) &
+    if (max(current_param$type %in% c("bool", "int", "double", "(double", "double)", "(double)", "string", "vector", "list")) &&
       !is.null(input[[param]])) {
       param_list[param] <- list(input[[param]])
     }
@@ -1311,6 +1353,9 @@ summarize_args_for_long_task <- function(input,
       param_list[param] <- list(override_args[[param]])
     }
   }
+
+  # Add method to meta_args
+  meta_args$method <- method
 
   # Add path arguments and further additional arguments
   return(list(
@@ -1358,7 +1403,7 @@ add_missing_args <- function(args, path_args, meta_args) {
           load_from_disk(path_args$path_to_feature_extractor)
         )
       }
-    } else if ("factor" %in% current_param$type & !is.null(path_args$path_to_target_data)) {
+    } else if ("factor" %in% current_param$type && !is.null(path_args$path_to_target_data)) {
       complete_args[param] <- list(
         long_load_target_data(
           file_path = path_args$path_to_target_data,
@@ -1368,6 +1413,10 @@ add_missing_args <- function(args, path_args, meta_args) {
     } else if (max(c("EmbeddedText", "LargeDataSetForText") %in% current_param$type)) {
       complete_args[param] <- list(
         load_from_disk(path_args$path_to_textual_dataset)
+      )
+    } else if (max(unlist(BaseModelsIndex) %in% current_param$type) && !is.null(path_args$path_to_base_model)) {
+      complete_args[param] <- list(
+        load_from_disk(path_args$path_to_base_model)
       )
     }
   }

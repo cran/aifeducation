@@ -35,8 +35,8 @@ long_add_texts_to_dataset <- function(source_path,
     requireNamespace("aifeducation")
     # Set up py env
     prepare_session(
-      env_type=py_environment_type,
-      envname=py_env_name
+      env_type = py_environment_type,
+      envname = py_env_name
     )
 
     # Set up top level progress monitoring
@@ -59,7 +59,7 @@ long_add_texts_to_dataset <- function(source_path,
         log_top_total = top_total,
         log_top_message = total_message,
         log_write_interval = log_write_interval,
-        clean_text=clean_text,
+        clean_text = clean_text,
         trace = FALSE
       )
     }
@@ -75,7 +75,7 @@ long_add_texts_to_dataset <- function(source_path,
         log_top_total = top_total,
         log_top_message = total_message,
         log_write_interval = log_write_interval,
-        clean_text=clean_text,
+        clean_text = clean_text,
         trace = FALSE
       )
     }
@@ -125,11 +125,10 @@ long_transform_text_to_embeddings <- function(source_path,
                                               py_environment_type,
                                               py_env_name) {
   promises::future_promise({
-
     # Set up py env
     prepare_session(
-      env_type=py_environment_type,
-      envname=py_env_name
+      env_type = py_environment_type,
+      envname = py_env_name
     )
 
     # Read the large data set for raw texts
@@ -168,27 +167,30 @@ long_transform_text_to_embeddings <- function(source_path,
 
 long_models <- function(args) {
   promises::future_promise({
-
     # Set up py env
     prepare_session(
-      env_type=args$configure$meta_args$py_environment_type,
-      envname=args$configure$meta_args$py_env_name
+      env_type = args[[1]]$meta_args$py_environment_type,
+      envname = args[[1]]$meta_args$py_env_name
     )
 
-    #Create object
-    object=create_object(args[[1]]$meta_args$object_class)
+    # Create object or load object
+    if (args[[1]]$meta_args$object_class %in% BaseModelsIndex) {
+      object <- load_from_disk(args[[1]]$path_args$path_to_base_model)
+    } else {
+      object <- create_object(args[[1]]$meta_args$object_class)
+    }
 
-    requested_methods=names(args)
-    for(method in requested_methods){
+    requested_methods <- names(args)
+    for (method in requested_methods) {
       # add missing objects to arguments by loading them
-      args[[method]]$args=add_missing_args(
-        args=args[[method]]$args,
-        path_args=args[[method]]$path_args,
-        meta_args=args[[method]]$meta_args
+      args[[method]]$args <- add_missing_args(
+        args = args[[method]]$args,
+        path_args = args[[method]]$path_args,
+        meta_args = args[[method]]$meta_args
       )
 
-      #Call Method
-      do.call(what = object[[method]],args=args[[method]]$args)
+      # Call Method
+      do.call(what = object[[method]], args = args[[method]]$args)
     }
 
     # Create dir for saving the object
@@ -216,28 +218,56 @@ long_transformers <- function(args) {
   promises::future_promise({
     # Set up py env
     prepare_session(
-      env_type=args[[1]]$meta_args$py_environment_type,
-      envname=args[[1]]$meta_args$py_env_name
+      env_type = args[[1]]$meta_args$py_environment_type,
+      envname = args[[1]]$meta_args$py_env_name
     )
 
-    #Create object
-    object=create_object(args[[1]]$meta_args$object_class)
+    object_list <- list()
 
-    requested_methods=names(args)
-    for(method in requested_methods){
+    for (task in names(args)) {
+      current_task <- args[[task]]
+
+      # Create or select the relevant object
+      if (current_task$meta_args$object_class %in% names(object_list)) {
+        tmp_object <- object_list[[current_task$meta_args$object_class]]
+      } else {
+        tmp_object <- create_object(current_task$meta_args$object_class)
+        object_list[current_task$meta_args$object_class] <- list(tmp_object)
+      }
+
+      # Request the method to apply
+      method <- current_task$meta_args$method
+
+      if (inherits(tmp_object, "BaseModelCore")) {
+        current_task$args$tokenizer <- object_list[[1]]
+      }
+
       # add missing objects to arguments by loading them
-      args[[method]]$args=add_missing_args(
-        args=args[[method]]$args,
-        path_args=args[[method]]$path_args,
-        meta_args=args[[method]]$meta_args
+      current_task$args <- add_missing_args(
+        args = current_task$args,
+        path_args = current_task$path_args,
+        meta_args = current_task$meta_args
       )
 
-      #Call Method
-      do.call(what = object[[method]],args=args[[method]]$args)
+      # Call Method
+      do.call(what = tmp_object[[method]], args = current_task$args)
     }
+
+    # Create dir for saving the object
+    dir_destination <- paste0(
+      args$configure$path_args$destination_path, "/",
+      args$configure$path_args$folder_name
+    )
+    create_dir(dir_destination, FALSE)
+
+    # Save the last used object
+    save_to_disk(
+      object = tmp_object,
+      dir_path = args[[1]]$path_args$destination_path,
+      folder_name = args[[1]]$path_args$folder_name
+    )
 
     # Returns message
     return("Transformer created.")
   })
 }
-

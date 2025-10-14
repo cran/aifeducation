@@ -6,7 +6,7 @@ testthat::skip_if_not(
 )
 
 # SetUp-------------------------------------------------------------------------
-root_path_general_data <- testthat::test_path("test_data_tmp/Embeddings")
+root_path_general_data <- testthat::test_path("test_data/Embeddings")
 
 # Load test data
 imdb_embeddings <- load_from_disk(paste0(root_path_general_data, "/imdb_embeddings"))
@@ -40,16 +40,17 @@ cycle_number_limit <- 80
 for (aug_num in aug_nums) {
   test_that(paste0("knnor: aug_num = ", aug_num), {
     aug_emb <- knnor(dataset, k, aug_num, cycle_number_limit)
-    #print(paste0("Number of generated cases is ", dim(aug_emb)[1], " out of ", aug_num))
+    # print(paste0("Number of generated cases is ", dim(aug_emb)[1], " out of ", aug_num))
     expect_equal(dim(aug_emb), c(aug_num, t_features))
 
     # check if new points are valid
     for (i in seq_len(dim(aug_emb)[1])) {
       ok <- knnor_is_same_class(
-        new_point = aug_emb[i,],
+        new_point = aug_emb[i, ],
         dataset = mat,
         labels = labels,
-        k = k)
+        k = k
+      )
 
       expect_equal(ok, TRUE)
     }

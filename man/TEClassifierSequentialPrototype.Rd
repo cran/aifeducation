@@ -125,7 +125,7 @@ Other Classification:
 }
 \concept{Classification}
 \section{Super classes}{
-\code{\link[aifeducation:AIFEBaseModel]{aifeducation::AIFEBaseModel}} -> \code{\link[aifeducation:ModelsBasedOnTextEmbeddings]{aifeducation::ModelsBasedOnTextEmbeddings}} -> \code{\link[aifeducation:ClassifiersBasedOnTextEmbeddings]{aifeducation::ClassifiersBasedOnTextEmbeddings}} -> \code{\link[aifeducation:TEClassifiersBasedOnProtoNet]{aifeducation::TEClassifiersBasedOnProtoNet}} -> \code{TEClassifierSequentialPrototype}
+\code{\link[aifeducation:AIFEMaster]{aifeducation::AIFEMaster}} -> \code{\link[aifeducation:AIFEBaseModel]{aifeducation::AIFEBaseModel}} -> \code{\link[aifeducation:ModelsBasedOnTextEmbeddings]{aifeducation::ModelsBasedOnTextEmbeddings}} -> \code{\link[aifeducation:ClassifiersBasedOnTextEmbeddings]{aifeducation::ClassifiersBasedOnTextEmbeddings}} -> \code{\link[aifeducation:TEClassifiersBasedOnProtoNet]{aifeducation::TEClassifiersBasedOnProtoNet}} -> \code{TEClassifierSequentialPrototype}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -137,24 +137,24 @@ Other Classification:
 \if{html}{\out{
 <details><summary>Inherited methods</summary>
 <ul>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_all_fields"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_all_fields'><code>aifeducation::AIFEMaster$get_all_fields()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_documentation_license"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_documentation_license'><code>aifeducation::AIFEMaster$get_documentation_license()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_ml_framework"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_ml_framework'><code>aifeducation::AIFEMaster$get_ml_framework()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_model_config"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_model_config'><code>aifeducation::AIFEMaster$get_model_config()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_model_description"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_model_description'><code>aifeducation::AIFEMaster$get_model_description()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_model_info"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_model_info'><code>aifeducation::AIFEMaster$get_model_info()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_model_license"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_model_license'><code>aifeducation::AIFEMaster$get_model_license()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_package_versions"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_package_versions'><code>aifeducation::AIFEMaster$get_package_versions()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_private"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_private'><code>aifeducation::AIFEMaster$get_private()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_publication_info"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_publication_info'><code>aifeducation::AIFEMaster$get_publication_info()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_sustainability_data"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_sustainability_data'><code>aifeducation::AIFEMaster$get_sustainability_data()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="is_configured"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-is_configured'><code>aifeducation::AIFEMaster$is_configured()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="is_trained"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-is_trained'><code>aifeducation::AIFEMaster$is_trained()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="set_documentation_license"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-set_documentation_license'><code>aifeducation::AIFEMaster$set_documentation_license()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="set_model_description"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-set_model_description'><code>aifeducation::AIFEMaster$set_model_description()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="set_model_license"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-set_model_license'><code>aifeducation::AIFEMaster$set_model_license()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="set_publication_info"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-set_publication_info'><code>aifeducation::AIFEMaster$set_publication_info()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="count_parameter"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-count_parameter'><code>aifeducation::AIFEBaseModel$count_parameter()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_all_fields"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_all_fields'><code>aifeducation::AIFEBaseModel$get_all_fields()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_documentation_license"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_documentation_license'><code>aifeducation::AIFEBaseModel$get_documentation_license()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_ml_framework"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_ml_framework'><code>aifeducation::AIFEBaseModel$get_ml_framework()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_model_description"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_model_description'><code>aifeducation::AIFEBaseModel$get_model_description()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_model_info"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_model_info'><code>aifeducation::AIFEBaseModel$get_model_info()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_model_license"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_model_license'><code>aifeducation::AIFEBaseModel$get_model_license()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_package_versions"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_package_versions'><code>aifeducation::AIFEBaseModel$get_package_versions()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_private"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_private'><code>aifeducation::AIFEBaseModel$get_private()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_publication_info"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_publication_info'><code>aifeducation::AIFEBaseModel$get_publication_info()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_sustainability_data"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_sustainability_data'><code>aifeducation::AIFEBaseModel$get_sustainability_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="is_configured"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-is_configured'><code>aifeducation::AIFEBaseModel$is_configured()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="is_trained"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-is_trained'><code>aifeducation::AIFEBaseModel$is_trained()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="load"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-load'><code>aifeducation::AIFEBaseModel$load()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="set_documentation_license"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-set_documentation_license'><code>aifeducation::AIFEBaseModel$set_documentation_license()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="set_model_description"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-set_model_description'><code>aifeducation::AIFEBaseModel$set_model_description()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="set_model_license"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-set_model_license'><code>aifeducation::AIFEBaseModel$set_model_license()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="set_publication_info"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-set_publication_info'><code>aifeducation::AIFEBaseModel$set_publication_info()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="aifeducation" data-topic="ModelsBasedOnTextEmbeddings" data-id="get_text_embedding_model"><a href='../../aifeducation/html/ModelsBasedOnTextEmbeddings.html#method-ModelsBasedOnTextEmbeddings-get_text_embedding_model'><code>aifeducation::ModelsBasedOnTextEmbeddings$get_text_embedding_model()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="aifeducation" data-topic="ModelsBasedOnTextEmbeddings" data-id="get_text_embedding_model_name"><a href='../../aifeducation/html/ModelsBasedOnTextEmbeddings.html#method-ModelsBasedOnTextEmbeddings-get_text_embedding_model_name'><code>aifeducation::ModelsBasedOnTextEmbeddings$get_text_embedding_model_name()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="aifeducation" data-topic="ClassifiersBasedOnTextEmbeddings" data-id="adjust_target_levels"><a href='../../aifeducation/html/ClassifiersBasedOnTextEmbeddings.html#method-ClassifiersBasedOnTextEmbeddings-adjust_target_levels'><code>aifeducation::ClassifiersBasedOnTextEmbeddings$adjust_target_levels()</code></a></span></li>
@@ -187,18 +187,18 @@ Creating a new instance of this class.
   feature_extractor = NULL,
   target_levels = NULL,
   skip_connection_type = "ResidualGate",
-  cls_pooling_features = 50,
+  cls_pooling_features = 50L,
   cls_pooling_type = "MinMax",
   metric_type = "Euclidean",
   feat_act_fct = "ELU",
-  feat_size = 50,
+  feat_size = 50L,
   feat_bias = TRUE,
   feat_dropout = 0,
   feat_parametrizations = "None",
   feat_normalization_type = "LayerNorm",
   ng_conv_act_fct = "ELU",
-  ng_conv_n_layers = 1,
-  ng_conv_ks_min = 2,
+  ng_conv_n_layers = 1L,
+  ng_conv_ks_min = 2L,
   ng_conv_ks_max = 4,
   ng_conv_bias = FALSE,
   ng_conv_dropout = 0.1,
@@ -206,7 +206,7 @@ Creating a new instance of this class.
   ng_conv_normalization_type = "LayerNorm",
   ng_conv_residual_type = "ResidualGate",
   dense_act_fct = "ELU",
-  dense_n_layers = 1,
+  dense_n_layers = 1L,
   dense_dropout = 0.5,
   dense_bias = FALSE,
   dense_parametrizations = "None",
@@ -222,18 +222,18 @@ Creating a new instance of this class.
   rec_normalization_type = "LayerNorm",
   rec_residual_type = "ResidualGate",
   tf_act_fct = "ELU",
-  tf_dense_dim = 50,
-  tf_n_layers = 1,
+  tf_dense_dim = 50L,
+  tf_n_layers = 1L,
   tf_dropout_rate_1 = 0.1,
   tf_dropout_rate_2 = 0.5,
   tf_attention_type = "MultiHead",
   tf_positional_type = "absolute",
-  tf_num_heads = 1,
+  tf_num_heads = 1L,
   tf_bias = FALSE,
   tf_parametrizations = "None",
   tf_normalization_type = "LayerNorm",
   tf_residual_type = "ResidualGate",
-  embedding_dim = 2
+  embedding_dim = 2L
 )}\if{html}{\out{</div>}}
 }
 
@@ -337,7 +337,7 @@ indicating a higher category/class. For nominal data the order does not matter.}
 
 \item{\code{tf_attention_type}}{\code{string} Choose the attention type. Allowed values: 'Fourier', 'MultiHead'}
 
-\item{\code{tf_positional_type}}{\code{string} Type of processing positional information. Allowed values: 'absolute'}
+\item{\code{tf_positional_type}}{\code{string} Type of processing positional information. Allowed values: 'None', 'absolute'}
 
 \item{\code{tf_num_heads}}{\code{int} determining the number of attention heads for a self-attention layer. Only relevant if \code{attention_type='multihead'} Allowed values: \code{0 <= x }}
 

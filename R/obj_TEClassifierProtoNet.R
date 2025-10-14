@@ -46,7 +46,7 @@ TEClassifierProtoNet <- R6::R6Class(
   public = list(
     #' @description Creating a new instance of this class.
     #' @return Returns an object of class [TEClassifierProtoNet] which is ready for configuration.
-    initialize=function(){
+    initialize = function() {
       message("TEClassifierProtoNet is deprecated. Please use TEClassifierSequentialPrototype.")
     },
     # New-----------------------------------------------------------------------
@@ -81,24 +81,24 @@ TEClassifierProtoNet <- R6::R6Class(
                          text_embeddings = NULL,
                          feature_extractor = NULL,
                          target_levels = NULL,
-                         dense_size = 4,
-                         dense_layers = 0,
-                         rec_size = 4,
-                         rec_layers = 2,
+                         dense_size = 4L,
+                         dense_layers = 0L,
+                         rec_size = 4L,
+                         rec_layers = 2L,
                          rec_type = "GRU",
                          rec_bidirectional = FALSE,
-                         embedding_dim = 2,
-                         self_attention_heads = 0,
+                         embedding_dim = 2L,
+                         self_attention_heads = 0L,
                          intermediate_size = NULL,
                          attention_type = "Fourier",
                          add_pos_embedding = TRUE,
-                         act_fct="ELU",
-                         parametrizations="None",
+                         act_fct = "ELU",
+                         parametrizations = "None",
                          rec_dropout = 0.1,
-                         repeat_encoder = 1,
+                         repeat_encoder = 1L,
                          dense_dropout = 0.4,
                          encoder_dropout = 0.1) {
-      private$do_configuration(args=get_called_args(n=1),one_hot_encoding=FALSE)
+      private$do_configuration(args = get_called_args(n = 1L), one_hot_encoding = FALSE)
     },
     #---------------------------------------------------------------------------
     #' @description Method for embedding documents. Please do not confuse this type of embeddings with the embeddings of
@@ -113,15 +113,15 @@ TEClassifierProtoNet <- R6::R6Class(
     #' * `embeddings_prototypes`: embeddings of the prototypes which were learned during training. They represents the
     #' center for the different classes.
     #'
-    embed = function(embeddings_q = NULL, batch_size = 32) {
-      check_class(embeddings_q,object_name="embeddings_q", c("EmbeddedText", "LargeDataSetForTextEmbeddings"), FALSE)
-      check_type(batch_size,object_name="batch_size", "int", FALSE)
+    embed = function(embeddings_q = NULL, batch_size = 32L) {
+      check_class(embeddings_q, object_name = "embeddings_q", c("EmbeddedText", "LargeDataSetForTextEmbeddings"), FALSE)
+      check_type(batch_size, object_name = "batch_size", "int", FALSE)
 
       # Check input for compatible text embedding models and feature extractors
-      if ("EmbeddedText" %in% class(embeddings_q)) {
+      if (inherits(embeddings_q, "EmbeddedText")) {
         self$check_embedding_model(text_embeddings = embeddings_q)
         requires_compression <- self$requires_compression(embeddings_q)
-      } else if ("array" %in% class(embeddings_q)) {
+      } else if (inherits(embeddings_q, "array")) {
         requires_compression <- self$requires_compression(embeddings_q)
       } else {
         requires_compression <- FALSE
@@ -137,7 +137,7 @@ TEClassifierProtoNet <- R6::R6Class(
       current_row_names <- private$get_rownames_from_embeddings(embeddings_q)
 
       # Apply feature extractor if it is part of the model
-      if (requires_compression == TRUE) {
+      if (requires_compression) {
         # Returns a data set
         embeddings_q <- self$feature_extractor$extract_features(
           data_embeddings = embeddings_q,
@@ -147,25 +147,25 @@ TEClassifierProtoNet <- R6::R6Class(
 
 
       # If at least two cases are part of the data set---------------------------
-      if (single_prediction == FALSE) {
+      if (!single_prediction) {
         # Returns a data set object
         prediction_data_q_embeddings <- private$prepare_embeddings_as_dataset(embeddings_q)
 
         if (private$ml_framework == "pytorch") {
           prediction_data_q_embeddings$set_format("torch")
           embeddings_and_distances <- py$TeProtoNetBatchEmbedDistance(
-            model = self$model,
+            model = private$model,
             dataset_q = prediction_data_q_embeddings,
             batch_size = as.integer(batch_size)
           )
-          embeddings_tensors_q <- tensor_to_numpy(embeddings_and_distances[[1]])
-          distances_tensors_q <- tensor_to_numpy(embeddings_and_distances[[2]])
+          embeddings_tensors_q <- tensor_to_numpy(embeddings_and_distances[[1L]])
+          distances_tensors_q <- tensor_to_numpy(embeddings_and_distances[[2L]])
         }
       } else {
         prediction_data_q_embeddings <- private$prepare_embeddings_as_np_array(embeddings_q)
 
         # Apply feature extractor if it is part of the model
-        if (requires_compression == TRUE) {
+        if (requires_compression) {
           # Returns a data set
           prediction_data_q <- np$array(self$feature_extractor$extract_features(
             data_embeddings = prediction_data_q_embeddings,
@@ -177,22 +177,22 @@ TEClassifierProtoNet <- R6::R6Class(
           if (torch$cuda$is_available()) {
             device <- "cuda"
             dtype <- torch$double
-            self$model$to(device, dtype = dtype)
-            self$model$eval()
+            private$model$to(device, dtype = dtype)
+            private$model$eval()
             input <- torch$from_numpy(prediction_data_q_embeddings)
-            embeddings_tensors_q <- self$model$embed(input$to(device, dtype = dtype))
+            embeddings_tensors_q <- private$model$embed(input$to(device, dtype = dtype))
             embeddings_tensors_q <- tensor_to_numpy(embeddings_tensors_q)
-            distances_tensors_q <- self$model$get_distances(input$to(device, dtype = dtype))
+            distances_tensors_q <- private$model$get_distances(input$to(device, dtype = dtype))
             distances_tensors_q <- tensor_to_numpy(distances_tensors_q)
           } else {
             device <- "cpu"
             dtype <- torch$float
-            self$model$to(device, dtype = dtype)
-            self$model$eval()
+            private$model$to(device, dtype = dtype)
+            private$model$eval()
             input <- torch$from_numpy(prediction_data_q_embeddings)
-            embeddings_tensors_q <- self$model$embed(input$to(device, dtype = dtype))
+            embeddings_tensors_q <- private$model$embed(input$to(device, dtype = dtype))
             embeddings_tensors_q <- tensor_to_numpy(embeddings_tensors_q)
-            distances_tensors_q <- self$model$get_distances(input$to(device, dtype = dtype))
+            distances_tensors_q <- private$model$get_distances(input$to(device, dtype = dtype))
             distances_tensors_q <- tensor_to_numpy(distances_tensors_q)
           }
         }
@@ -200,14 +200,14 @@ TEClassifierProtoNet <- R6::R6Class(
 
       if (private$ml_framework == "pytorch") {
         embeddings_prototypes <- tensor_to_numpy(
-          self$model$get_trained_prototypes()
+          private$model$get_trained_prototypes()
         )
       }
 
       # Post processing
       rownames(embeddings_tensors_q) <- current_row_names
       rownames(distances_tensors_q) <- current_row_names
-      rownames(embeddings_prototypes) <- self$model_config$target_levels
+      rownames(embeddings_prototypes) <- private$model_config$target_levels
 
       return(list(
         embeddings_q = embeddings_tensors_q,
@@ -221,19 +221,19 @@ TEClassifierProtoNet <- R6::R6Class(
     #'   embeddings for all cases which should be embedded into the classification space.
     #' @param classes_q Named `factor` containg the true classes for every case. Please note that the names must match
     #'   the names/ids in `embeddings_q`.
-    #'@param inc_unlabeled `bool` If `TRUE` plot includes unlabeled cases as data points.
-    #'@param size_points `int` Size of the points excluding the points for prototypes.
-    #'@param size_points_prototypes `int` Size of points representing prototypes.
-    #'@param alpha `float` Value indicating how transparent the points should be (important
+    #' @param inc_unlabeled `bool` If `TRUE` plot includes unlabeled cases as data points.
+    #' @param size_points `int` Size of the points excluding the points for prototypes.
+    #' @param size_points_prototypes `int` Size of points representing prototypes.
+    #' @param alpha `float` Value indicating how transparent the points should be (important
     #'   if many points overlap). Does not apply to points representing prototypes.
     #' @param batch_size `int` batch size.
     #' @return Returns a plot of class `ggplot`visualizing embeddings.
     plot_embeddings = function(embeddings_q,
-                               classes_q=NULL,
-                               batch_size = 12,
+                               classes_q = NULL,
+                               batch_size = 12L,
                                alpha = 0.5,
-                               size_points = 3,
-                               size_points_prototypes = 8,
+                               size_points = 3L,
+                               size_points_prototypes = 8L,
                                inc_unlabeled = TRUE) {
       # Argument checking-------------------------------------------------------
 
@@ -249,7 +249,7 @@ TEClassifierProtoNet <- R6::R6Class(
       colnames(prototypes) <- c("x", "y", "class", "type")
 
 
-      if(!is.null(classes_q)){
+      if (!is.null(classes_q)) {
         true_values_names <- intersect(
           x = names(na.omit(classes_q)),
           y = private$get_rownames_from_embeddings(embeddings_q)
@@ -259,18 +259,18 @@ TEClassifierProtoNet <- R6::R6Class(
         true_values$type <- rep("labeled", length(true_values_names))
         colnames(true_values) <- c("x", "y", "class", "type")
       } else {
-        true_values_names=NULL
-        true_values=NULL
+        true_values_names <- NULL
+        true_values <- NULL
       }
 
 
-      if (inc_unlabeled == TRUE) {
+      if (inc_unlabeled) {
         estimated_values_names <- setdiff(
           x = private$get_rownames_from_embeddings(embeddings_q),
           y = true_values_names
         )
 
-        if (length(estimated_values_names) > 0) {
+        if (length(estimated_values_names) > 0L) {
           estimated_values <- as.data.frame(embeddings$embeddings_q[estimated_values_names, , drop = FALSE])
           estimated_values$class <- private$calc_classes_on_distance(
             distance_matrix = embeddings$distances_q[estimated_values_names, , drop = FALSE],
@@ -284,15 +284,15 @@ TEClassifierProtoNet <- R6::R6Class(
       }
 
 
-      plot_data=prototypes
-      if (length(true_values) > 0) {
-        plot_data=rbind(plot_data,true_values)
+      plot_data <- prototypes
+      if (length(true_values) > 0L) {
+        plot_data <- rbind(plot_data, true_values)
       }
-      if (length(estimated_values_names) > 0) {
-        plot_data <- rbind(plot_data,estimated_values)
+      if (length(estimated_values_names) > 0L) {
+        plot_data <- rbind(plot_data, estimated_values)
       }
 
-      plot <- ggplot2::ggplot(data = plot_data) +
+      tmp_plot <- ggplot2::ggplot(data = plot_data) +
         ggplot2::geom_point(
           mapping = ggplot2::aes(
             x = x,
@@ -301,55 +301,54 @@ TEClassifierProtoNet <- R6::R6Class(
             shape = type,
             size = type,
             alpha = type
-          )#,
-          #position = ggplot2::position_jitter(h = 0.1, w = 0.1)
+          ) # ,
+          # position = ggplot2::position_jitter(h = 0.1, w = 0.1)
         ) +
         ggplot2::scale_size_manual(values = c(
-          "prototype" = size_points_prototypes,
-          "labeled" = size_points,
-          "unlabeled" = size_points
+          prototype = size_points_prototypes,
+          labeled = size_points,
+          unlabeled = size_points
         )) +
         ggplot2::scale_alpha_manual(
           values = c(
-            "prototype" = 1,
-            "labeled" = alpha,
-            "unlabeled" = alpha
+            prototype = 1L,
+            labeled = alpha,
+            unlabeled = alpha
           )
         ) +
         ggplot2::theme_classic()
-      return(plot)
+      return(tmp_plot)
     }
   ),
   private = list(
-    #Private--------------------------------------------------------------------------
+    # Private--------------------------------------------------------------------------
     create_reset_model = function() {
-
       private$check_config_for_TRUE()
 
       private$load_reload_python_scripts()
 
-      self$model <- py$TextEmbeddingClassifierProtoNet_PT(
-        features = as.integer(self$model_config$features),
-        times = as.integer(self$model_config$times),
-        dense_size = as.integer(self$model_config$dense_size),
-        dense_layers = as.integer(self$model_config$dense_layers),
-        rec_size = as.integer(self$model_config$rec_size),
-        rec_layers = as.integer(self$model_config$rec_layers),
-        rec_type = self$model_config$rec_type,
-        rec_bidirectional = self$model_config$rec_bidirectional,
-        intermediate_size = as.integer(self$model_config$intermediate_size),
-        attention_type = self$model_config$attention_type,
-        repeat_encoder = as.integer(self$model_config$repeat_encoder),
-        dense_dropout = self$model_config$dense_dropout,
-        rec_dropout = self$model_config$rec_dropout,
-        encoder_dropout = self$model_config$encoder_dropout,
-        add_pos_embedding = self$model_config$add_pos_embedding,
-        pad_value=as.integer(private$text_embedding_model$pad_value),
-        self_attention_heads = as.integer(self$model_config$self_attention_heads),
-        embedding_dim = as.integer(self$model_config$embedding_dim),
-        target_levels = reticulate::np_array(seq(from = 0, to = (length(self$model_config$target_levels) - 1))),
-        act_fct=self$model_config$act_fct,
-        parametrizations=self$model_config$parametrizations
+      private$model <- py$TextEmbeddingClassifierProtoNet_PT(
+        features = as.integer(private$model_config$features),
+        times = as.integer(private$model_config$times),
+        dense_size = as.integer(private$model_config$dense_size),
+        dense_layers = as.integer(private$model_config$dense_layers),
+        rec_size = as.integer(private$model_config$rec_size),
+        rec_layers = as.integer(private$model_config$rec_layers),
+        rec_type = private$model_config$rec_type,
+        rec_bidirectional = private$model_config$rec_bidirectional,
+        intermediate_size = as.integer(private$model_config$intermediate_size),
+        attention_type = private$model_config$attention_type,
+        repeat_encoder = as.integer(private$model_config$repeat_encoder),
+        dense_dropout = private$model_config$dense_dropout,
+        rec_dropout = private$model_config$rec_dropout,
+        encoder_dropout = private$model_config$encoder_dropout,
+        add_pos_embedding = private$model_config$add_pos_embedding,
+        pad_value = as.integer(private$text_embedding_model$pad_value),
+        self_attention_heads = as.integer(private$model_config$self_attention_heads),
+        embedding_dim = as.integer(private$model_config$embedding_dim),
+        target_levels = reticulate::np_array(seq(from = 0L, to = (length(private$model_config$target_levels) - 1L))),
+        act_fct = private$model_config$act_fct,
+        parametrizations = private$model_config$parametrizations
       )
     },
     #--------------------------------------------------------------------------
@@ -359,7 +358,7 @@ TEClassifierProtoNet <- R6::R6Class(
                            reset_model = FALSE,
                            use_callback = TRUE,
                            log_dir = NULL,
-                           log_write_interval = 10,
+                           log_write_interval = 10L,
                            log_top_value = NULL,
                            log_top_total = NULL,
                            log_top_message = NULL) {
@@ -369,7 +368,7 @@ TEClassifierProtoNet <- R6::R6Class(
       }
 
       # Reset model if requested
-      if (reset_model == TRUE) {
+      if (reset_model) {
         private$create_reset_model()
       }
 
@@ -377,28 +376,28 @@ TEClassifierProtoNet <- R6::R6Class(
       loss_cls_fct_name <- "ProtoNetworkMargin"
 
       # Set target column
-      if (self$model_config$require_one_hot == FALSE) {
+      if (!private$model_config$require_one_hot) {
         target_column <- "labels"
       } else {
         target_column <- "one_hot_encoding"
       }
 
       dataset_train <- train_data$select_columns(c("input", target_column))
-      if (self$model_config$require_one_hot == TRUE) {
+      if (private$model_config$require_one_hot) {
         dataset_train <- dataset_train$rename_column(target_column, "labels")
       }
 
       pytorch_train_data <- dataset_train$with_format("torch")
 
       pytorch_val_data <- val_data$select_columns(c("input", target_column))
-      if (self$model_config$require_one_hot == TRUE) {
+      if (private$model_config$require_one_hot) {
         pytorch_val_data <- pytorch_val_data$rename_column(target_column, "labels")
       }
       pytorch_val_data <- pytorch_val_data$with_format("torch")
 
       if (!is.null(test_data)) {
         pytorch_test_data <- test_data$select_columns(c("input", target_column))
-        if (self$model_config$require_one_hot == TRUE) {
+        if (private$model_config$require_one_hot) {
           pytorch_test_data <- pytorch_test_data$rename_column(target_column, "labels")
         }
         pytorch_test_data <- pytorch_test_data$with_format("torch")
@@ -406,8 +405,8 @@ TEClassifierProtoNet <- R6::R6Class(
         pytorch_test_data <- NULL
       }
 
-      history <- py$TeClassifierProtoNetTrain_PT_with_Datasets(
-        model = self$model,
+      tmp_history <- py$TeClassifierProtoNetTrain_PT_with_Datasets(
+        model = private$model,
         loss_fct_name = self$last_training$config$loss_pt_fct_name,
         optimizer_method = self$last_training$config$optimizer,
         lr_rate = self$last_training$config$lr_rate,
@@ -424,8 +423,8 @@ TEClassifierProtoNet <- R6::R6Class(
         epochs = as.integer(self$last_training$config$epochs),
         sampling_separate = self$last_training$config$sampling_separate,
         sampling_shuffle = self$last_training$config$sampling_shuffle,
-        filepath = paste0(private$dir_checkpoint, "/best_weights.pt"),
-        n_classes = as.integer(length(self$model_config$target_levels)),
+        filepath = file.path(private$dir_checkpoint, "best_weights.pt"),
+        n_classes = as.integer(length(private$model_config$target_levels)),
         log_dir = log_dir,
         log_write_interval = log_write_interval,
         log_top_value = log_top_value,
@@ -434,96 +433,104 @@ TEClassifierProtoNet <- R6::R6Class(
       )
 
       # provide rownames and replace -100
-      history <- private$prepare_history_data(history)
+      tmp_history <- private$prepare_history_data(tmp_history)
 
-      return(history)
+      return(tmp_history)
     },
     #--------------------------------------------------------------------------
-    load_reload_python_scripts=function(){
+    load_reload_python_scripts = function() {
       super$load_reload_python_scripts()
-      load_py_scripts(c("pytorch_old_scripts.py"))
+      load_py_scripts("pytorch_old_scripts.py")
     },
     #--------------------------------------------------------------------------
-    check_param_combinations_configuration=function(){
-      if (self$model_config$dense_layers > 0) {
-        if (self$model_config$dense_size < 1) {
+    check_param_combinations_configuration = function() {
+      if (private$model_config$dense_layers > 0L) {
+        if (private$model_config$dense_size < 1L) {
           stop("Dense layers added. Size for dense layers must be at least 1.")
         }
       }
 
-      if (self$model_config$rec_layers > 0) {
-        if (self$model_config$rec_size < 1) {
+      if (private$model_config$rec_layers > 0L) {
+        if (private$model_config$rec_size < 1L) {
           stop("Recurrent  layers added. Size for recurrent layers must be at least 1.")
         }
       }
 
-      if (self$model_config$repeat_encoder > 0 &
-          self$model_config$attention_type == "MultiHead" &
-          self$model_config$self_attention_heads <= 0) {
+      if (private$model_config$repeat_encoder > 0L &
+        private$model_config$attention_type == "MultiHead" &
+        private$model_config$self_attention_heads <= 0L) {
         stop("Encoder layer is set to 'multihead'. This requires self_attention_heads>=1.")
       }
 
-      if (self$model_config$rec_layers != 0 & self$model_config$self_attention_heads > 0) {
-        if (self$model_config$features %% 2 != 0) {
+      if (private$model_config$rec_layers != 0L & private$model_config$self_attention_heads > 0L) {
+        if (private$model_config$features %% 2L != 0L) {
           stop("The number of features of the TextEmbeddingmodel is
                not a multiple of 2.")
         }
       }
+
+      if (private$model_config$rec_layers == 1L && private$model_config$rec_dropout > 0.0) {
+        print_message(
+          msg = "Dropout for recurrent requires at least two layers. Setting rec_dropout to 0.0.",
+          trace = TRUE
+        )
+        private$model_config$rec_dropout <- 0.0
+      }
     },
     #--------------------------------------------------------------------------
     adjust_configuration = function() {
-      if (is.null(self$model_config$intermediate_size) == TRUE) {
-        if (self$model_config$attention_type == "Fourier" & self$model_config$rec_layers > 0) {
-          self$model_config$intermediate_size <- 2 * self$model_config$rec_size
-        } else if (self$model_config$attention_type == "Fourier" & self$model_config$rec_layers == 0) {
-          self$model_config$intermediate_size <- 2 * self$model_config$features
+      if (is.null(private$model_config$intermediate_size)) {
+        if (private$model_config$attention_type == "Fourier" & private$model_config$rec_layers > 0L) {
+          private$model_config$intermediate_size <- 2L * private$model_config$rec_size
+        } else if (private$model_config$attention_type == "Fourier" & private$model_config$rec_layers == 0L) {
+          private$model_config$intermediate_size <- 2L * private$model_config$features
         } else if (
-          self$model_config$attention_type == "MultiHead" &
-          self$model_config$rec_layers > 0 &
-          self$model_config$self_attention_heads > 0
+          private$model_config$attention_type == "MultiHead" &
+            private$model_config$rec_layers > 0L &
+            private$model_config$self_attention_heads > 0L
         ) {
-          self$model_config$intermediate_size <- 2 * self$model_config$features
+          private$model_config$intermediate_size <- 2L * private$model_config$features
         } else if (
-          self$model_config$attention_type == "MultiHead" &
-          self$model_config$rec_layers == 0 &
-          self$model_config$self_attention_heads > 0
+          private$model_config$attention_type == "MultiHead" &
+            private$model_config$rec_layers == 0L &
+            private$model_config$self_attention_heads > 0L
         ) {
-          self$model_config$intermediate_size <- 2 * self$model_config$features
+          private$model_config$intermediate_size <- 2L * private$model_config$features
         } else {
-          self$model_config$intermediate_size <- NULL
+          private$model_config$intermediate_size <- NULL
         }
       }
 
-      if (self$model_config$rec_layers <= 1) {
-        self$model_config$rec_dropout <- 0.0
+      if (private$model_config$rec_layers <= 1L) {
+        private$model_config$rec_dropout <- 0.0
       }
-      if (self$model_config$rec_layers <= 0) {
-        self$model_config$rec_size <- 0
+      if (private$model_config$rec_layers <= 0L) {
+        private$model_config$rec_size <- 0L
       }
 
-      if (self$model_config$dense_layers <= 1) {
-        self$model_config$dense_dropout <- 0.0
+      if (private$model_config$dense_layers <= 1L) {
+        private$model_config$dense_dropout <- 0.0
       }
-      if (self$model_config$dense_layers <= 0) {
-        self$model_config$dense_size <- 0
+      if (private$model_config$dense_layers <= 0L) {
+        private$model_config$dense_size <- 0L
       }
     },
     #-------------------------------------------------------------------------
     calc_classes_on_distance = function(distance_matrix, prototypes) {
       index_vector <- vector(length = nrow(distance_matrix))
 
-      for (i in 1:length(index_vector)) {
+      for (i in seq_along(index_vector)) {
         index_vector[i] <- which.min(distance_matrix[i, ])
       }
 
       classes <- factor(index_vector,
-                        levels = 1:nrow(prototypes),
-                        labels = rownames(prototypes)
+        levels = seq_len(nrow(prototypes)),
+        labels = rownames(prototypes)
       )
       return(classes)
     }
   )
 )
 
-#Add Classifier to central index
-TEClassifiers_class_names<-append(x=TEClassifiers_class_names,values = "TEClassifierProtoNet")
+# Add Classifier to central index
+TEClassifiers_class_names <- append(x = TEClassifiers_class_names, values = "TEClassifierProtoNet")

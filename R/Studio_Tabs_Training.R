@@ -76,7 +76,7 @@ Training_Server <- function(id, model) {
 
     # Control widgets for classifiers--------------------------------------------
     output$classifier_specific <- shiny::renderUI({
-      if ("ClassifiersBasedOnTextEmbeddings" %in% class(model())) {
+      if (inherits(model(), "ClassifiersBasedOnTextEmbeddings")) {
         ui <- shiny::tagList(
           shinyWidgets::radioGroupButtons(
             inputId = ns("training_phase"),
@@ -107,7 +107,7 @@ Training_Server <- function(id, model) {
           )
         )
         return(ui)
-      } else if ("TEFeatureExtractor" %in% class(model())) {
+      } else if (inherits(model(), "TEFeatureExtractor")) {
         ui <- shiny::tagList(
           shinyWidgets::radioGroupButtons(
             inputId = ns("measure"),
@@ -152,25 +152,38 @@ Training_Server <- function(id, model) {
     output$training_plot <- shiny::renderPlot(
       {
         shiny::req(model)
-        if ("TextEmbeddingModel" %in% class(model())) {
+        if (inherits(model(), "TextEmbeddingModel")) {
+          plot <- model()$BaseModel$plot_training_history(
+            y_min = input$y_min,
+            y_max = input$y_max,
+            text_size = input$text_size
+          )
+        } else if ((inherits(model(), "BaseModelCore"))) {
           plot <- model()$plot_training_history(
             y_min = input$y_min,
-            y_max = input$y_max
+            y_max = input$y_max,
+            text_size = input$text_size
           )
-        } else if ("ClassifiersBasedOnTextEmbeddings" %in% class(model())) {
+        } else if (inherits(model(), "ClassifiersBasedOnTextEmbeddings")) {
           # Necessary input
           shiny::req(input$measure)
+
+          if (input$training_phase == "TRUE") {
+            bool_training_phase <- TRUE
+          } else {
+            bool_training_phase <- FALSE
+          }
 
           plot <- model()$plot_training_history(
             y_min = input$y_min,
             y_max = input$y_max,
-            final_training = input$training_phase,
+            final_training = bool_training_phase,
             pl_step = input$classifier_pl_step,
             measure = input$measure,
             add_min_max = input$training_min_max,
             text_size = input$text_size
           )
-        } else if ("TEFeatureExtractor" %in% class(model())) {
+        } else if (inherits(model(), "TEFeatureExtractor")) {
           plot <- model()$plot_training_history(
             y_min = input$y_min,
             y_max = input$y_max,

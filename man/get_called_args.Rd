@@ -4,7 +4,7 @@
 \alias{get_called_args}
 \title{Called arguments}
 \usage{
-get_called_args(n = 1)
+get_called_args(n = 1L)
 }
 \arguments{
 \item{n}{\code{int} level of the nested environments where to extract the arguments.}
@@ -17,6 +17,9 @@ Function for receiving all arguments that were called by a method or function.
 }
 \seealso{
 Other Parameter Dictionary: 
+\code{\link{BaseModelsIndex}},
+\code{\link{DataSetsIndex}},
+\code{\link{TokenizerIndex}},
 \code{\link{get_TEClassifiers_class_names}()},
 \code{\link{get_depr_obj_names}()},
 \code{\link{get_magnitude_values}()},

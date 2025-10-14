@@ -5,8 +5,8 @@ testthat::skip_if_not(
 )
 
 # config------------------------------------------------------------------------
-#object_class_names <- get_TEClassifiers_class_names(super_class = "TEClassifiersBasedOnProtoNet")
-object_class_names <-"TEClassifierProtoNet"
+# object_class_names <- get_TEClassifiers_class_names(super_class = "TEClassifiersBasedOnProtoNet")
+object_class_names <- "TEClassifierProtoNet"
 max_samples <- 20
 max_samples_CI <- 10
 
@@ -51,9 +51,8 @@ if (file.exists(root_path_feature_extractor)) {
 
 for (object_class_name in object_class_names) {
   for (n_classes in class_range) {
-
     # Embed----------------------------------------------------------------------
-    for (i in 1:check_adjust_n_samples_on_CI(max_samples,max_samples_CI) ) {
+    for (i in 1:check_adjust_n_samples_on_CI(max_samples, max_samples_CI)) {
       # Create test object with a given combination of args
       test_combinations <- generate_args_for_tests(
         object_name = object_class_name,
@@ -69,6 +68,7 @@ for (object_class_name in object_class_names) {
           name = NULL,
           label = "Classifier for Estimating a Postive or Negative Rating of Movie Reviews",
           sustain_interval = 30,
+          sustain_log_level = "error",
           act_fct = "ELU",
           rec_dropout = 0.1,
           dense_dropout = 0.1,
@@ -86,6 +86,7 @@ for (object_class_name in object_class_names) {
           embedding_dim = 2,
           sustain_track = TRUE,
           sustain_iso_code = "DEU",
+          sustain_log_level = "error",
           data_val_size = 0.25,
           lr_rate = 1e-3,
           optimizer = "AdamW",
@@ -98,12 +99,14 @@ for (object_class_name in object_class_names) {
       )
 
       classifier <- create_object(object_class_name)
-      do.call(
-        what = classifier$configure,
-        args = test_combinations
+      suppressMessages(
+        do.call(
+          what = classifier$configure,
+          args = test_combinations
+        )
       )
 
-      if(test_combinations$attention_type!="Fourier"){
+      if (test_combinations$attention_type != "Fourier") {
         test_that(paste("embed", object_class_name, get_current_args_for_print(test_combinations)), {
           # Predictions
           embeddings <- classifier$embed(
@@ -121,8 +124,8 @@ for (object_class_name in object_class_names) {
           )
           for (j in seq_len(nrow(embeddings$embeddings_q))) {
             expect_equal(embeddings$embeddings_q[j, ],
-                         embeddings_perm$embeddings_q[which(perm == j), ],
-                         tolerance = 1e-5
+              embeddings_perm$embeddings_q[which(perm == j), ],
+              tolerance = 1e-5
             )
           }
         })

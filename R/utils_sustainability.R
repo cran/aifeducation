@@ -23,7 +23,7 @@
 #' @family Utils Sustainability Developers
 #'
 #' @keywords internal
-summarize_tracked_sustainability <- function(sustainability_tracker) {
+summarize_tracked_sustainability <- function(sustainability_tracker, task = NA) {
   if (is.null(sustainability_tracker$final_emissions_data$region)) {
     region <- NA
   } else {
@@ -44,7 +44,8 @@ summarize_tracked_sustainability <- function(sustainability_tracker) {
 
   results <- list(
     sustainability_tracked = TRUE,
-    date = date(),
+    date = get_time_stamp(),
+    task = task,
     sustainability_data = list(
       duration_sec = sustainability_tracker$final_emissions_data$duration,
       co2eq_kg = sustainability_tracker$final_emissions_data$emissions,

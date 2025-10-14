@@ -7,13 +7,6 @@ testthat::skip_if_not(
 # SetUp-------------------------------------------------------------------------
 root_path_general_data <- testthat::test_path("test_data/Embeddings")
 root_path_data <- testthat::test_path("test_data/classifier")
-# if (dir.exists(testthat::test_path("test_artefacts")) == FALSE) {
-#  dir.create(testthat::test_path("test_artefacts"))
-# }
-# root_path_results <- testthat::test_path("test_artefacts/DataManager")
-# if (dir.exists(root_path_results) == FALSE) {
-#  dir.create(root_path_results)
-# }
 
 # SetUp datasets
 # Disable tqdm progressbar
@@ -100,7 +93,7 @@ for (method in methods) {
         # Test if the ratio of the labels is correct (stratified sample)
         expect_identical(
           ignore_attr = TRUE,
-          tolerance=1e-2,
+          tolerance = 1e-2,
           table(test_datamanager$datasets$data_labeled[sample$train]["labels"]) /
             sum(table(test_datamanager$datasets$data_labeled[sample$train]["labels"])),
           table(example_targets) / sum(table(example_targets))
@@ -108,7 +101,7 @@ for (method in methods) {
         gc()
         expect_identical(
           ignore_attr = TRUE,
-          tolerance=1e-2,
+          tolerance = 1e-2,
           table(test_datamanager$datasets$data_labeled[sample$val]["labels"]) /
             sum(table(test_datamanager$datasets$data_labeled[sample$val]["labels"])),
           table(example_targets) / sum(table(example_targets))
@@ -116,7 +109,7 @@ for (method in methods) {
         gc()
         if (i <= test_datamanager$get_n_folds()) {
           expect_identical(
-            tolerance=1e-2,
+            tolerance = 1e-2,
             ignore_attr = TRUE,
             table(test_datamanager$datasets$data_labeled[sample$test]["labels"]) /
               sum(table(test_datamanager$datasets$data_labeled[sample$test]["labels"])),

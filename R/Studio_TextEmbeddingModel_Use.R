@@ -48,6 +48,14 @@ TextEmbeddingModel_Use_UI <- function(id) {
           Training_UI(id = shiny::NS(id, "TextEmbeddingModel_Training"))
         ),
         bslib::nav_panel(
+          title = "Sustainability",
+          Sustainability_UI(id = shiny::NS(id, "TextEmbeddingModel_Sustainability"))
+        ),
+        bslib::nav_panel(
+          title = "FLOPS",
+          FLOPS_UI(id = shiny::NS(id, "TextEmbeddingModel_FLOPS"))
+        ),
+        bslib::nav_panel(
           title = "Fill-Mask",
           Fill_Mask_UI(id = shiny::NS(id, "TextEmbeddingModel_Fill_Mask"))
         ),
@@ -110,8 +118,8 @@ TextEmbeddingModel_Use_Server <- function(id, log_dir, volumes) {
         # Try to load the model
         model <- try(load_from_disk(model_path), silent = TRUE)
 
-        if ("try-error" %in% class(model) == FALSE) {
-          if ("TextEmbeddingModel" %in% class(model)) {
+        if (inherits(model, "try-error") == FALSE) {
+          if (inherits(model, "TextEmbeddingModel")) {
             shiny::removeModal()
             return(model)
           } else {
@@ -150,6 +158,14 @@ TextEmbeddingModel_Use_Server <- function(id, log_dir, volumes) {
     )
     Training_Server(
       id = "TextEmbeddingModel_Training",
+      model = model
+    )
+    Sustainability_Server(
+      id = "TextEmbeddingModel_Sustainability",
+      model = model
+    )
+    FLOPS_Server(
+      id = "TextEmbeddingModel_FLOPS",
       model = model
     )
     Fill_Mask_Server(

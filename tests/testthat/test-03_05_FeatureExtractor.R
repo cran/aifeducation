@@ -7,7 +7,7 @@ testthat::skip_if_not(
 # SetUp-------------------------------------------------------------------------
 # Set paths
 root_path_data <- testthat::test_path("test_data/FeatureExtractor")
-root_path_general_data <- testthat::test_path("test_data_tmp/Embeddings")
+root_path_general_data <- testthat::test_path("test_data/Embeddings")
 create_dir(testthat::test_path("test_artefacts"), FALSE)
 root_path_results <- testthat::test_path("test_artefacts/FeatureExtractor")
 create_dir(root_path_results, FALSE)
@@ -52,24 +52,26 @@ for (framework in ml_frameworks) {
       # Train-----------------------------------------------------------------
       test_that(paste(framework, method, data_type, "train without log"), {
         expect_no_error(
-          extractor$train(
-            data_embeddings = dataset_list[[data_type]],
-            data_val_size = 0.25,
-            sustain_track = TRUE,
-            sustain_iso_code = "DEU",
-            sustain_region = NULL,
-            sustain_interval = 15,
-            epochs = 2,
-            batch_size = 100,
-            optimizer = "Adam",
-            trace = random_bool_on_CI(),
-            ml_trace = 0
+          suppressMessages(
+            extractor$train(
+              data_embeddings = dataset_list[[data_type]],
+              data_val_size = 0.25,
+              sustain_track = TRUE,
+              sustain_iso_code = "DEU",
+              sustain_region = NULL,
+              sustain_interval = 15,
+              sustain_log_level = "error",
+              epochs = 2,
+              batch_size = 100,
+              optimizer = "Adam",
+              trace = random_bool_on_CI(),
+              ml_trace = 0
+            )
           )
         )
 
-        #Check if sustainability data has been tracked
+        # Check if sustainability data has been tracked
         expect_true(extractor$get_sustainability_data()$sustainability_tracked)
-
       })
       gc()
 
@@ -77,18 +79,21 @@ for (framework in ml_frameworks) {
         train_path <- paste0(root_path_results, "/", "train_", generate_id())
         create_dir(train_path, FALSE)
         expect_no_error(
-          extractor$train(
-            data_embeddings = dataset_list[[data_type]],
-            data_val_size = 0.25,
-            sustain_track = TRUE,
-            sustain_iso_code = "DEU",
-            sustain_region = NULL,
-            sustain_interval = 15,
-            epochs = 2,
-            batch_size = 100,
-            log_dir = train_path,
-            trace = random_bool_on_CI(),
-            ml_trace = 0
+          suppressMessages(
+            extractor$train(
+              data_embeddings = dataset_list[[data_type]],
+              data_val_size = 0.25,
+              sustain_track = TRUE,
+              sustain_iso_code = "DEU",
+              sustain_region = NULL,
+              sustain_interval = 15,
+              sustain_log_level = "error",
+              epochs = 2,
+              batch_size = 100,
+              log_dir = train_path,
+              trace = random_bool_on_CI(),
+              ml_trace = 0
+            )
           )
         )
 
@@ -216,61 +221,6 @@ for (framework in ml_frameworks) {
       }
       gc()
 
-      # Method for loading and saving models-----------------------------------
-      test_that(paste(framework, method, data_type, "method save and load"), {
-        # Predictions before saving and loading
-        if (data_type == "EmbeddedText") {
-          predictions <- extractor$extract_features(
-            data_embeddings = dataset_list[[data_type]],
-            batch_size = 50
-          )
-        } else {
-          predictions <- extractor$extract_features_large(
-            data_embeddings = dataset_list[[data_type]],
-            batch_size = 50,
-            trace = FALSE
-          )
-        }
-
-        # Save and load
-        folder_name <- paste0("method_save_load_", generate_id())
-        dir_path <- paste0(root_path_results, "/", folder_name)
-        extractor$save(
-          dir_path = root_path_results,
-          folder_name = folder_name
-        )
-        extractor$load(dir_path = dir_path)
-
-        # Predict after loading
-        if (data_type == "EmbeddedText") {
-          predictions_2 <- extractor$extract_features(
-            data_embeddings = dataset_list[[data_type]],
-            batch_size = 50
-          )
-        } else {
-          predictions_2 <- extractor$extract_features_large(
-            data_embeddings = dataset_list[[data_type]],
-            batch_size = 50,
-            trace = FALSE
-          )
-        }
-
-        # Compare predictions
-        i <- sample(x = seq.int(from = 1, to = predictions$n_rows()), size = 1)
-        expect_equal(predictions$embeddings[i, , , drop = FALSE],
-          predictions_2$embeddings[i, , , drop = FALSE],
-          tolerance = 1e-6
-        )
-
-        # Clean Directory
-        unlink(
-          x = dir_path,
-          recursive = TRUE
-        )
-      })
-      gc()
-
-
       # Function for loading and saving models-----------------------------------
       test_that(paste(framework, method, data_type, "function save and load"), {
         # Predictions before saving and loading
@@ -295,17 +245,23 @@ for (framework in ml_frameworks) {
           dir_path = root_path_results,
           folder_name = folder_name
         )
-        extractor <- NULL
-        extractor <- load_from_disk(dir_path = dir_path)
+        extractor2 <- NULL
+        extractor2 <- load_from_disk(dir_path = dir_path)
+
+        # Is config equal after loading
+        expect_equal(
+          extractor$get_model_config(),
+          extractor2$get_model_config()
+        )
 
         # Predict after loading
         if (data_type == "EmbeddedText") {
-          predictions_2 <- extractor$extract_features(
+          predictions_2 <- extractor2$extract_features(
             data_embeddings = dataset_list[[data_type]],
             batch_size = 50
           )
         } else {
-          predictions_2 <- extractor$extract_features_large(
+          predictions_2 <- extractor2$extract_features_large(
             data_embeddings = dataset_list[[data_type]],
             batch_size = 50,
             trace = FALSE

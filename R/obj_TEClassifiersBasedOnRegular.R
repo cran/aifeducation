@@ -15,9 +15,9 @@
 #' @title Base class for regular classifiers relying on [EmbeddedText] or [LargeDataSetForTextEmbeddings] as input
 #' @description Abstract class for all regular classifiers that use numerical representations of texts instead of words.
 #'
-#'Objects of this class containing fields and methods used in several other classes in 'AI for Education'.
+#' Objects of this class containing fields and methods used in several other classes in 'AI for Education'.
 #'
-#'This class is **not** designed for a direct application and should only be used by developers.
+#' This class is **not** designed for a direct application and should only be used by developers.
 #'
 #' @return A new object of this class.
 #' @family R6 Classes for Developers
@@ -55,6 +55,7 @@ TEClassifiersBasedOnRegular <- R6::R6Class(
     #' @param sustain_iso_code `r get_param_doc_desc("sustain_iso_code")`
     #' @param sustain_region `r get_param_doc_desc("sustain_region")`
     #' @param sustain_interval `r get_param_doc_desc("sustain_interval")`
+    #' @param sustain_log_level `r get_description("sustain_log_level")`
     #' @param epochs `r get_param_doc_desc("epochs")`
     #' @param batch_size `r get_param_doc_desc("batch_size")`
     #' @param log_dir `r get_param_doc_desc("log_dir")`
@@ -74,38 +75,39 @@ TEClassifiersBasedOnRegular <- R6::R6Class(
     #' * `pl_anchor`: With the help of this value, the new cases are sorted. For
     #' this aim, the distance from the anchor is calculated and all cases are arranged into an ascending order.
     #'
-    train = function(data_embeddings=NULL,
-                     data_targets=NULL,
-                     data_folds = 5,
+    train = function(data_embeddings = NULL,
+                     data_targets = NULL,
+                     data_folds = 5L,
                      data_val_size = 0.25,
                      loss_balance_class_weights = TRUE,
                      loss_balance_sequence_length = TRUE,
-                     loss_cls_fct_name="FocalLoss",
+                     loss_cls_fct_name = "FocalLoss",
                      use_sc = FALSE,
                      sc_method = "knnor",
-                     sc_min_k = 1,
-                     sc_max_k = 10,
+                     sc_min_k = 1L,
+                     sc_max_k = 10L,
                      use_pl = FALSE,
-                     pl_max_steps = 3,
+                     pl_max_steps = 3L,
                      pl_max = 1.00,
                      pl_anchor = 1.00,
                      pl_min = 0.00,
                      sustain_track = TRUE,
                      sustain_iso_code = NULL,
                      sustain_region = NULL,
-                     sustain_interval = 15,
-                     epochs = 40,
-                     batch_size = 32,
+                     sustain_interval = 15L,
+                     sustain_log_level = "warning",
+                     epochs = 40L,
+                     batch_size = 32L,
                      trace = TRUE,
-                     ml_trace = 1,
+                     ml_trace = 1L,
                      log_dir = NULL,
-                     log_write_interval = 10,
+                     log_write_interval = 10L,
                      n_cores = auto_n_cores(),
-                     lr_rate=1e-3,
-                     lr_warm_up_ratio=0.02,
-                     optimizer="AdamW") {
-      private$do_training(args=get_called_args(n=1))
+                     lr_rate = 1e-3,
+                     lr_warm_up_ratio = 0.02,
+                     optimizer = "AdamW") {
+      private$do_training(args = get_called_args(n = 1L))
     }
-    ),
+  ),
   private = list()
 )

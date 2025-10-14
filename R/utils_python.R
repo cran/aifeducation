@@ -30,7 +30,7 @@ load_py_scripts <- function(files) {
     if (file_path != "") {
       reticulate::py_run_file(file_path)
     } else {
-      stop(paste(file, "does not exist"))
+      stop(file, " does not exist")
     }
   }
 }
@@ -43,12 +43,12 @@ load_py_scripts <- function(files) {
 #' @importFrom reticulate py_run_file
 #' @export
 load_all_py_scripts <- function() {
-  python_dir=system.file(
+  python_dir <- system.file(
     "python",
     package = "aifeducation"
   )
-  python_files=list.files(
-    path=python_dir,
+  python_files <- list.files(
+    path = python_dir,
     full.names = TRUE
   )
 
@@ -69,7 +69,7 @@ load_all_py_scripts <- function() {
 #' @noRd
 #'
 numpy_writeable <- function(np_array) {
-  if (!inherits(x = np_array, what = c("numpy.ndarray"))) {
+  if (!inherits(x = np_array, what = "numpy.ndarray")) {
     stop("Provided object is no numpy array")
   }
   return(reticulate::py_to_r(np_array$flags["WRITEABLE"]))
@@ -86,7 +86,7 @@ numpy_writeable <- function(np_array) {
 #' @noRd
 #'
 is_venv <- function() {
-  if (reticulate::py_available() == TRUE) {
+  if (reticulate::py_available()) {
     py_config <- reticulate::py_config()
     if (py_config$conda == "False") {
       return(TRUE)
@@ -109,7 +109,7 @@ is_venv <- function() {
 #' @noRd
 #'
 get_py_env_type <- function() {
-  if (reticulate::py_available() == TRUE) {
+  if (reticulate::py_available()) {
     py_config <- reticulate::py_config()
     if (py_config$conda == "False") {
       return("venv")
@@ -134,7 +134,7 @@ get_py_env_type <- function() {
 #' @noRd
 #'
 get_py_env_name <- function() {
-  if (reticulate::py_available() == TRUE) {
+  if (reticulate::py_available()) {
     if (is_venv()) {
       return(get_current_venv())
     } else {
@@ -157,7 +157,7 @@ get_py_env_name <- function() {
 #' @noRd
 #'
 get_current_conda_env <- function() {
-  if (reticulate::py_available() == TRUE) {
+  if (reticulate::py_available()) {
     current_sessions <- reticulate::py_config()
     if (current_sessions$conda == "True") {
       current_conda_env <- base::strsplit(
@@ -165,7 +165,7 @@ get_current_conda_env <- function() {
         split = "/",
         fixed = TRUE
       )
-      current_conda_env <- current_conda_env[[1]][length(current_conda_env[[1]])]
+      current_conda_env <- current_conda_env[[1L]][length(current_conda_env[[1L]])]
       return(current_conda_env)
     } else {
       stop("No conda environment active.")
@@ -187,7 +187,7 @@ get_current_conda_env <- function() {
 #' @noRd
 #'
 get_current_venv <- function() {
-  if (reticulate::py_available() == TRUE) {
+  if (reticulate::py_available()) {
     current_sessions <- reticulate::py_config()
     if (current_sessions$conda == "False") {
       current_venv <- base::strsplit(
@@ -195,7 +195,7 @@ get_current_venv <- function() {
         split = "/",
         fixed = TRUE
       )
-      current_venv <- current_venv[[1]][length(current_venv[[1]])]
+      current_venv <- current_venv[[1L]][length(current_venv[[1L]])]
       return(current_venv)
     } else {
       stop("No virtual environment active.")
@@ -227,6 +227,7 @@ get_py_package_versions <- function() {
     "tokenizers",
     "pandas",
     "datasets",
+    "calflops",
     "codecarbon",
     "safetensors",
     "torcheval",
@@ -234,9 +235,10 @@ get_py_package_versions <- function() {
     "numpy"
   )
 
-  versions <- vector(length = length(list_of_packages) + 1)
+  versions <- vector(length = length(list_of_packages) + 1L)
   names(versions) <- c("python", list_of_packages)
   versions["python"] <- as.character(reticulate::py_config()$version)
+
   for (package in list_of_packages) {
     versions[package] <- get_py_package_version(package)
   }
@@ -246,17 +248,32 @@ get_py_package_versions <- function() {
 #' @title Get versions of a specific python package
 #' @description Function for requesting the version of a specific python package.
 #' @param package_name `string` Name of the package.
-#' @return Returns the version as `string` or `NA` if the package does not exist.
+#' @return Returns the version as `string` or `NA` if the package does not exist
+#' or no version is available.
 #'
 #' @family Utils Python Developers
 #' @importFrom reticulate import
 #' @export
 get_py_package_version <- function(package_name) {
-  if (reticulate::py_module_available(package_name) == TRUE) {
+  if (reticulate::py_module_available(package_name)) {
     tmp_package <- reticulate::import(module = package_name, delay_load = FALSE)
-    return(as.character(tmp_package["__version__"]))
-  } else {
-    return(NA)
-  }
-}
+    tmp_version <- try(as.character(tmp_package["__version__"]), silent = TRUE)
 
+    if (is(tmp_version, "try-error")) {
+      packages_installed <- try(reticulate::py_list_packages(), silent = TRUE)
+
+      if (!inherits(packages_installed, "try-error") && is.data.frame(packages_installed)) {
+        if (package_name %in% packages_installed$package) {
+          tmp_version <- packages_installed$version[which(packages_installed$package == package_name)]
+        } else {
+          tmp_version <- NA
+        }
+      } else {
+        tmp_version <- NA
+      }
+    }
+  } else {
+    tmp_version <- NA
+  }
+  return(tmp_version)
+}

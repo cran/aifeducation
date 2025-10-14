@@ -31,33 +31,35 @@ save_to_disk <- function(object,
                          folder_name) {
   # Check class of object
   check_class(
-    object=object,
-    object_name="object",
-    classes=c(
+    object = object,
+    object_name = "object",
+    classes = c(
       TEClassifiers_class_names,
       "TEFeatureExtractor",
       "TextEmbeddingModel",
       "LargeDataSetForTextEmbeddings",
       "LargeDataSetForText",
       "EmbeddedText",
-      ".AIFEBaseTransformer"
+      ".AIFEBaseTransformer",
+      "BaseModelCore",
+      "TokenizerBase"
     ),
     FALSE
   )
-  check_type(object=dir_path,object_name="dir_path", type="string", FALSE)
-  check_type(object=folder_name,object_name="folder_name", type="string", FALSE)
+  check_type(object = dir_path, object_name = "dir_path", type = "string", FALSE)
+  check_type(object = folder_name, object_name = "folder_name", type = "string", FALSE)
 
   # Create path to save location
-  save_location <- paste0(dir_path, "/", folder_name)
+  save_location <- file.path(dir_path, folder_name)
 
   # Create path to r_interface
-  path_r_config_state <- paste0(save_location, "/", "r_config_state.rda")
+  path_r_config_state <- file.path(save_location, "r_config_state.rda")
 
   # Check directory
   create_dir(dir_path, FALSE)
   create_dir(save_location, FALSE)
 
-  if(!".AIFEBaseTransformer"%in%class(object)){
+  if (!inherits(object, ".AIFEBaseTransformer")) {
     # Create config and save to disk
     config_file <- create_config_state(object)
     save(config_file, file = path_r_config_state)
@@ -84,34 +86,33 @@ save_to_disk <- function(object,
 #'
 #' @export
 load_from_disk <- function(dir_path) {
-  #Case for all native ai for education models
-  if(file.exists(paste0(dir_path, "/r_config_state.rda"))){
-    #load config
+  # Case for all native ai for education models
+  if (file.exists(file.path(dir_path, "r_config_state.rda"))) {
+    # load config
     loaded_config <- load_R_config_state(dir_path)
 
-    #Create object
-    model<-create_object(loaded_config$class)
+    # Create object
+    model <- create_object(loaded_config$class)
 
     # load and update model
     model$load_from_disk(dir_path = dir_path)
     return(model)
   } else {
-    #Case for base models
-
+    # Case for base models
   }
 }
 
 
 load_R_config_state <- function(dir_path) {
   # Load the Interface to R
-  interface_path <- paste0(dir_path, "/r_config_state.rda")
+  interface_path <- file.path(dir_path, "r_config_state.rda")
 
   # Check for r_config_state.rda
-  if (file.exists(interface_path) == FALSE) {
-    stop(paste(
-      "There is no file r_config_state.rda in the selected directory",
-      "The directory is:", dir_path
-    ))
+  if (!file.exists(interface_path)) {
+    stop(
+      "There is no file r_config_state.rda in the selected directory ",
+      "The directory is: ", dir_path
+    )
   }
 
   # Load interface
@@ -136,7 +137,7 @@ load_R_config_state <- function(dir_path) {
 #' @keywords internal
 create_config_state <- function(object) {
   config <- object$get_all_fields()
-  config["class"] <- class(object)[1]
+  config["class"] <- class(object)[1L]
 
   # Remove embeddings to avoid duplicate data storage
   if (config["class"] == "EmbeddedText") {

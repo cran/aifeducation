@@ -37,10 +37,6 @@ TextEmbeddingModel_Create_UI <- function(id) {
         ),
         shiny::tags$hr(),
         shiny::textInput(
-          inputId = shiny::NS(id, "lm_model_name"),
-          label = "Name"
-        ),
-        shiny::textInput(
           inputId = shiny::NS(id, "lm_model_label"),
           label = "Label"
         ),
@@ -150,20 +146,20 @@ TextEmbeddingModel_Create_Server <- function(id, log_dir, volumes) {
     interface_architecture <- shiny::eventReactive(path_to_base_model(), {
       model_path <- path_to_base_model()
 
-      path_bin=paste0(model_path,"/","pytorch_model.bin")
-      path_safetensor=paste0(model_path,"/","model.safetensors")
+      path_bin <- paste0(model_path, "/", "pytorch_model.bin")
+      path_safetensor <- paste0(model_path, "/", "model.safetensors")
 
       if (file.exists(path_safetensor)) {
-       valid_path= path_safetensor
-      } else if(file.exists(path_bin)) {
-        valid_path=path_bin
+        valid_path <- path_safetensor
+      } else if (file.exists(path_bin)) {
+        valid_path <- path_bin
       } else {
-        valid_path=NA
+        valid_path <- NA
       }
 
-      if(!is.na(valid_path)){
+      if (!is.na(valid_path)) {
         model <- transformers$AutoModel$from_pretrained(model_path)
-        model_architecture <-detect_base_model_type(model)
+        model_architecture <- detect_base_model_type(model)
         max_position_embeddings <- model$config$max_position_embeddings
         if (model_architecture == "funnel") {
           max_layer <- sum(model$config$block_repeats * model$config$block_sizes)
@@ -196,6 +192,12 @@ TextEmbeddingModel_Create_Server <- function(id, log_dir, volumes) {
         }
 
         ui <- shiny::tagList(
+          shiny::selectInput(
+            inputId = ns("lm_emb_pool_type"),
+            label = paste("Pooling Type"),
+            choices = pool_type_choices,
+            multiple = FALSE
+          ),
           shiny::sliderInput(
             inputId = ns("lm_chunks"),
             label = "N Chunks",
@@ -230,12 +232,6 @@ TextEmbeddingModel_Create_Server <- function(id, log_dir, volumes) {
             min = 1,
             max = max_layer_transformer,
             step = 1
-          ),
-          shiny::selectInput(
-            inputId = ns("lm_emb_pool_type"),
-            label = paste("Pooling Type"),
-            choices = pool_type_choices,
-            multiple = FALSE
           )
         )
         return(ui)
@@ -268,7 +264,7 @@ TextEmbeddingModel_Create_Server <- function(id, log_dir, volumes) {
 
         new_interface <- TextEmbeddingModel$new()
         new_interface$configure(
-          model_name = input$lm_model_name,
+          model_name = NULL,
           model_label = input$lm_model_label,
           model_language = input$lm_model_language,
           max_length = input$lm_max_length,
@@ -277,7 +273,7 @@ TextEmbeddingModel_Create_Server <- function(id, log_dir, volumes) {
           emb_layer_min = input$lm_emb_layers[1],
           emb_layer_max = input$lm_emb_layers[2],
           emb_pool_type = input$lm_emb_pool_type,
-          model_dir = path_to_base_model()
+          base_model = load_from_disk(path_to_base_model())
         )
 
         save_to_disk(

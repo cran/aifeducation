@@ -97,10 +97,10 @@ get_layer_dict <- function(layer) {
     title = "Classifiction Pooling Layer",
     desc = "Layer transforms sequences into a lower dimensional space that can be passed to dense layers. It
     performs two types of pooling. First, it extractes features across the time dimension selecting the maximal
-    and/or minimal features. Second, it performs pooling over the remaining features selecting a speficifc number of
+    and/or minimal features. Second, it performs pooling over the remaining features selecting a specific number of
     the heighest and/or lowest features.
     \n In the case of selecting the minmal *and* maximal features at the same time the minmal
-    features are concatenated to the tensor of the maximal features resulting the in the shape $(Batch, Times, 2*Features)$ at the end of the first step.
+    features are concatenated to the tensor of the maximal features resulting in the shape $(Batch, Times, 2*Features)$ at the end of the first step.
     In the second step the
     number of requested features is halved. The first half is used for the maximal features and the second for the minimal
     features.",
@@ -210,7 +210,11 @@ get_dict_input_types <- function(input_type) {
    be used for pseudo labeling.
    \n For predictions an object of class [EmbeddedText] or [LargeDataSetForTextEmbeddings] has to be used which was
    created with the same [TextEmbeddingModel] as for training."
+  } else {
+    stop("input type not supported-")
   }
+
+  return(desc)
 }
 
 
@@ -227,10 +231,8 @@ get_dict_input_types <- function(input_type) {
 #' @family Utils Documentation
 #' @export
 get_parameter_documentation <- function(param_name, param_dict, as_list = TRUE, inc_param_name = TRUE) {
-  selected_param <- param_name
-
   # Add description
-  if (as_list == TRUE) {
+  if (as_list) {
     prefix <- "- *"
     suffix <- "*: "
     list_level <- "\t"
@@ -240,7 +242,7 @@ get_parameter_documentation <- function(param_name, param_dict, as_list = TRUE, 
     list_level <- ""
   }
 
-  if (inc_param_name == TRUE) {
+  if (inc_param_name) {
     param_desc <- paste0(prefix, param_name, suffix)
   } else {
     param_desc <- NULL
@@ -299,7 +301,7 @@ get_layer_documentation <- function(layer_name, title_format = "bold", subtitle_
     title_format_2 <- ""
   }
 
-  title <- paste0(title_format_1, current_doc$title, title_format_2, "\n\n")
+  title_string <- paste0(title_format_1, current_doc$title, title_format_2, "\n\n")
 
 
   if (subtitle_format == "italic") {
@@ -318,7 +320,7 @@ get_layer_documentation <- function(layer_name, title_format = "bold", subtitle_
   )
 
   # Image of the layer
-  if (inc_img == TRUE) {
+  if (inc_img) {
     img_block <- paste0(subtitle_format1, "Visualization", subtitle_format1, "\n\n")
     img_block <- paste0(
       img_block,
@@ -331,7 +333,7 @@ get_layer_documentation <- function(layer_name, title_format = "bold", subtitle_
   # Description of all parameters
   param_desc <- NULL
   # Parameter Documentation---------------------------------------------------
-  if (inc_params == TRUE) {
+  if (inc_params) {
     param_desc <- paste0(subtitle_format1, "Parameters", subtitle_format1, "\n\n")
     for (i in seq_along(relevant_params)) {
       selected_param <- relevant_params[[i]]
@@ -347,7 +349,7 @@ get_layer_documentation <- function(layer_name, title_format = "bold", subtitle_
   # Gather documentation elements---------------------------------------------
   markdown_doc <- paste0(
     "\n",
-    title,
+    title_string,
     img_block,
     desc,
     param_desc
@@ -369,7 +371,7 @@ get_layer_documentation <- function(layer_name, title_format = "bold", subtitle_
 get_desc_for_core_model_architecture <- function(name, title_format = "bold", inc_img = FALSE) {
   documentation <- get_dict_core_models(name)
 
-  if (inc_img == TRUE) {
+  if (inc_img) {
     img_block <- "**Visualization**\n\n"
     img_block <- paste0(
       img_block,
@@ -423,7 +425,7 @@ build_documentation_for_model <- function(model_name, cls_type = NULL, core_type
 
   for (i in seq_along(layer_included)) {
     check_inlucded <- stringi::stri_detect(str = params, regex = paste0("^", prefixes[i]))
-    if (sum(check_inlucded) > 0) {
+    if (sum(check_inlucded) > 0L) {
       layer_included[i] <- TRUE
     } else {
       layer_included[i] <- FALSE
@@ -433,10 +435,10 @@ build_documentation_for_model <- function(model_name, cls_type = NULL, core_type
   model_documentation <- NULL
 
   # CLS Type
-  desc_cls_type <- NULL
   if (!is.null(cls_type)) {
-    model_documentation <- paste0("**Classification Type**\n\n",
-      desc_cls_type = get_dict_cls_type(cls_type)
+    model_documentation <- paste0(
+      "**Classification Type**\n\n",
+      get_dict_cls_type(cls_type)
     )
   }
 
@@ -450,7 +452,7 @@ build_documentation_for_model <- function(model_name, cls_type = NULL, core_type
 
   # Layer Description
   for (i in seq_along(layer_included)) {
-    if (layer_included[i] == TRUE) {
+    if (layer_included[i]) {
       model_documentation <- paste0(
         model_documentation, "\n",
         get_layer_documentation(names(layer_included)[i], subtitle_format = "italic")
@@ -516,32 +518,6 @@ build_layer_stack_documentation_for_vignette <- function() {
   return(markdown_syntax)
 }
 
-#' @keywords internal
-get_allowed_transformer_types <- function(in_quotation_marks = FALSE) {
-  res_str <- ""
-  if (in_quotation_marks) {
-    for (i in seq_len(length(AIFETrType))) {
-      tr_name <- names(AIFETrType)[i]
-      if (i != 1) res_str <- paste0(res_str, ", ")
-      res_str <- paste0(res_str, "'", tr_name, "'")
-    }
-  } else {
-    res_str <- paste(unname(AIFETrType), collapse = ", ")
-  }
-  return(res_str)
-}
-
-#' @keywords internal
-get_tr_types_list_decsription <- function() {
-  list_description <- ""
-  for (i in seq_len(length(AIFETrType))) {
-    tr_name <- names(AIFETrType)[i]
-    list_element <- paste0("* `", tr_name, "` = '", tr_name, "'")
-    list_description <- paste0(list_description, "\n", list_element)
-  }
-  return(list_description)
-}
-
 #' @title Build a homepage for the package
 #' @description Function build the homepage of the package. In order to use python
 #' the build process is run in the current environment.
@@ -551,14 +527,16 @@ get_tr_types_list_decsription <- function() {
 #' @family Parameter Dictionary
 #' @noRd
 #' @keywords internal
-build_aife_site <- function(clear_docs=FALSE) {
+build_aife_site <- function(clear_docs = FALSE) {
+  build_layer_stack_documentation_for_vignette()
+
   requireNamespace("pkgdown")
-  if(clear_docs==TRUE){
+  pkgdown::clean_cache()
+  if (clear_docs) {
     pkgdown::clean_site()
   }
   pkgdown::init_site()
   pkgdown::build_home()
-  pkgdown::build_redirects()
 
   # build site for articles
   articles <- list.files(
@@ -576,7 +554,28 @@ build_aife_site <- function(clear_docs=FALSE) {
   }
 
   pkgdown::build_news()
+  pkgdown::build_reference()
   pkgdown::build_redirects()
 
   pkgdown::preview_site()
+}
+
+
+# ==============================================================================
+
+#' @keywords internal
+get_description <- function(type) {
+  if (type == "return_object") {
+    return("Does return a new object of this class.")
+  } else if (type == "return_nothing") {
+    return("Does nothing return.")
+  } else if (type == "return_save_on_disk") {
+    return("Function does nothing return. It is used to save an object on disk.")
+  } else if (type == "return_load_on_disk") {
+    return("Function does nothin return. It loads an object from disk.")
+  } else if (type == "save_dir") {
+    return("Path to the directory where to save the object.")
+  } else if (type == "load_dir") {
+    return("Path where the object set is stored.")
+  }
 }

@@ -15,22 +15,25 @@
 #' @title Aifeducation Studio
 #' @description Functions starts a shiny app that represents Aifeducation Studio.
 #'
+#' @param launch_browser `bool` If `TRUE` the system's default web browser is used for displaying the app.
+#'
 #' @return This function does nothing return. It is used to start a shiny app.
 #'
 #' @family Graphical User Interface
 #'
 #' @export
-start_aifeducation_studio <- function() {
+start_aifeducation_studio <- function(launch_browser = TRUE) {
   # Prepare for studio
-  check_and_prepare_for_studio(env_type="auto")
+  check_and_prepare_for_studio(env_type = "auto")
 
   # Set up for long running tasks
   # future::plan(future::multisession)
 
   # Create App------------------------------------------------------------------
   shiny::shinyAppDir(
-    appDir = system.file("studio_app",
-      package = "aifeducation"
+    appDir = system.file("studio_app", package = "aifeducation"),
+    options = list(
+      launch.browser = launch_browser
     )
   )
 }

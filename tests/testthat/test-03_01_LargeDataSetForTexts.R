@@ -97,7 +97,7 @@ test_that("LargeDataSetForTexts - Add txt - with log", {
       log_top_value = 0,
       log_top_total = 1,
       log_top_message = NA,
-      clean_text=TRUE
+      clean_text = TRUE
     )
   )
 
@@ -227,7 +227,7 @@ test_that("LargeDataSetForTexts - Add pdf with log", {
   expect_no_error(
     new_dataset$add_from_files_pdf(
       dir_path = root_path_data_multiple_texts,
-      clean_text=TRUE,
+      clean_text = TRUE,
       trace = FALSE
     )
   )
@@ -545,7 +545,7 @@ test_that("LargeDataSetForTexts - Add single txt", {
   )
 
   id <- new_dataset$get_ids()
-  true_ids <- c("text_a")
+  true_ids <- "text_a"
   ids_complete <- sum(true_ids %in% id)
   expect_equal(ids_complete, length(true_ids))
 })
@@ -574,7 +574,7 @@ test_that("LargeDataSetForTexts - Add single pdf", {
   )
 
   id <- new_dataset$get_ids()
-  true_ids <- c("pdf_a")
+  true_ids <- "pdf_a"
   ids_complete <- sum(true_ids %in% id)
   expect_equal(ids_complete, length(true_ids))
 })
@@ -603,7 +603,7 @@ test_that("LargeDataSetForTexts - Add single excel", {
   )
 
   id <- new_dataset$get_ids()
-  true_ids <- c("excel_a")
+  true_ids <- "excel_a"
   ids_complete <- sum(true_ids %in% id)
   expect_equal(ids_complete, length(true_ids))
 })

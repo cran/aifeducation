@@ -9,9 +9,9 @@ matrix_to_array_c(matrix, times, features)
 \arguments{
 \item{matrix}{\code{matrix} containing the sequential data.}
 
-\item{times}{\code{size_t} Number of sequences.}
+\item{times}{\code{uword} Number of sequences.}
 
-\item{features}{\code{size_t} Number of features within each sequence.}
+\item{features}{\code{uword} Number of features within each sequence.}
 }
 \value{
 Returns an array. The first dimension corresponds to the cases,
@@ -29,6 +29,7 @@ Other Utils Developers:
 \code{\link{generate_id}()},
 \code{\link{get_n_chunks}()},
 \code{\link{get_synthetic_cases_from_matrix}()},
+\code{\link{get_time_stamp}()},
 \code{\link{tensor_to_matrix_c}()},
 \code{\link{to_categorical_c}()}
 }

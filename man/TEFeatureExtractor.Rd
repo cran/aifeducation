@@ -40,7 +40,7 @@ Other Text Embedding:
 }
 \concept{Text Embedding}
 \section{Super classes}{
-\code{\link[aifeducation:AIFEBaseModel]{aifeducation::AIFEBaseModel}} -> \code{\link[aifeducation:ModelsBasedOnTextEmbeddings]{aifeducation::ModelsBasedOnTextEmbeddings}} -> \code{TEFeatureExtractor}
+\code{\link[aifeducation:AIFEMaster]{aifeducation::AIFEMaster}} -> \code{\link[aifeducation:AIFEBaseModel]{aifeducation::AIFEBaseModel}} -> \code{\link[aifeducation:ModelsBasedOnTextEmbeddings]{aifeducation::ModelsBasedOnTextEmbeddings}} -> \code{TEFeatureExtractor}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -56,29 +56,29 @@ Other Text Embedding:
 \if{html}{\out{
 <details><summary>Inherited methods</summary>
 <ul>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_all_fields"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_all_fields'><code>aifeducation::AIFEMaster$get_all_fields()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_documentation_license"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_documentation_license'><code>aifeducation::AIFEMaster$get_documentation_license()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_ml_framework"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_ml_framework'><code>aifeducation::AIFEMaster$get_ml_framework()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_model_config"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_model_config'><code>aifeducation::AIFEMaster$get_model_config()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_model_description"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_model_description'><code>aifeducation::AIFEMaster$get_model_description()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_model_info"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_model_info'><code>aifeducation::AIFEMaster$get_model_info()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_model_license"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_model_license'><code>aifeducation::AIFEMaster$get_model_license()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_package_versions"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_package_versions'><code>aifeducation::AIFEMaster$get_package_versions()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_private"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_private'><code>aifeducation::AIFEMaster$get_private()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_publication_info"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_publication_info'><code>aifeducation::AIFEMaster$get_publication_info()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="get_sustainability_data"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-get_sustainability_data'><code>aifeducation::AIFEMaster$get_sustainability_data()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="is_configured"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-is_configured'><code>aifeducation::AIFEMaster$is_configured()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="is_trained"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-is_trained'><code>aifeducation::AIFEMaster$is_trained()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="set_documentation_license"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-set_documentation_license'><code>aifeducation::AIFEMaster$set_documentation_license()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="set_model_description"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-set_model_description'><code>aifeducation::AIFEMaster$set_model_description()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="set_model_license"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-set_model_license'><code>aifeducation::AIFEMaster$set_model_license()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEMaster" data-id="set_publication_info"><a href='../../aifeducation/html/AIFEMaster.html#method-AIFEMaster-set_publication_info'><code>aifeducation::AIFEMaster$set_publication_info()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="count_parameter"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-count_parameter'><code>aifeducation::AIFEBaseModel$count_parameter()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_all_fields"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_all_fields'><code>aifeducation::AIFEBaseModel$get_all_fields()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_documentation_license"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_documentation_license'><code>aifeducation::AIFEBaseModel$get_documentation_license()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_ml_framework"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_ml_framework'><code>aifeducation::AIFEBaseModel$get_ml_framework()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_model_description"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_model_description'><code>aifeducation::AIFEBaseModel$get_model_description()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_model_info"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_model_info'><code>aifeducation::AIFEBaseModel$get_model_info()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_model_license"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_model_license'><code>aifeducation::AIFEBaseModel$get_model_license()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_package_versions"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_package_versions'><code>aifeducation::AIFEBaseModel$get_package_versions()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_private"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_private'><code>aifeducation::AIFEBaseModel$get_private()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_publication_info"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_publication_info'><code>aifeducation::AIFEBaseModel$get_publication_info()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="get_sustainability_data"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-get_sustainability_data'><code>aifeducation::AIFEBaseModel$get_sustainability_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="is_configured"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-is_configured'><code>aifeducation::AIFEBaseModel$is_configured()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="is_trained"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-is_trained'><code>aifeducation::AIFEBaseModel$is_trained()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="load"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-load'><code>aifeducation::AIFEBaseModel$load()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="save"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-save'><code>aifeducation::AIFEBaseModel$save()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="set_documentation_license"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-set_documentation_license'><code>aifeducation::AIFEBaseModel$set_documentation_license()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="set_model_description"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-set_model_description'><code>aifeducation::AIFEBaseModel$set_model_description()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="set_model_license"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-set_model_license'><code>aifeducation::AIFEBaseModel$set_model_license()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="aifeducation" data-topic="AIFEBaseModel" data-id="set_publication_info"><a href='../../aifeducation/html/AIFEBaseModel.html#method-AIFEBaseModel-set_publication_info'><code>aifeducation::AIFEBaseModel$set_publication_info()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="aifeducation" data-topic="ModelsBasedOnTextEmbeddings" data-id="check_embedding_model"><a href='../../aifeducation/html/ModelsBasedOnTextEmbeddings.html#method-ModelsBasedOnTextEmbeddings-check_embedding_model'><code>aifeducation::ModelsBasedOnTextEmbeddings$check_embedding_model()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="aifeducation" data-topic="ModelsBasedOnTextEmbeddings" data-id="get_text_embedding_model"><a href='../../aifeducation/html/ModelsBasedOnTextEmbeddings.html#method-ModelsBasedOnTextEmbeddings-get_text_embedding_model'><code>aifeducation::ModelsBasedOnTextEmbeddings$get_text_embedding_model()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="aifeducation" data-topic="ModelsBasedOnTextEmbeddings" data-id="get_text_embedding_model_name"><a href='../../aifeducation/html/ModelsBasedOnTextEmbeddings.html#method-ModelsBasedOnTextEmbeddings-get_text_embedding_model_name'><code>aifeducation::ModelsBasedOnTextEmbeddings$get_text_embedding_model_name()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="aifeducation" data-topic="ModelsBasedOnTextEmbeddings" data-id="load_from_disk"><a href='../../aifeducation/html/ModelsBasedOnTextEmbeddings.html#method-ModelsBasedOnTextEmbeddings-load_from_disk'><code>aifeducation::ModelsBasedOnTextEmbeddings$load_from_disk()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="aifeducation" data-topic="ModelsBasedOnTextEmbeddings" data-id="save"><a href='../../aifeducation/html/ModelsBasedOnTextEmbeddings.html#method-ModelsBasedOnTextEmbeddings-save'><code>aifeducation::ModelsBasedOnTextEmbeddings$save()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -92,7 +92,7 @@ Creating a new instance of this class.
   name = NULL,
   label = NULL,
   text_embeddings = NULL,
-  features = 128,
+  features = 128L,
   method = "dense",
   orthogonal_method = "matrix_exp",
   noise_factor = 0.2
@@ -137,13 +137,14 @@ Method for training a neural net.
   sustain_track = TRUE,
   sustain_iso_code = NULL,
   sustain_region = NULL,
-  sustain_interval = 15,
-  epochs = 40,
-  batch_size = 32,
+  sustain_interval = 15L,
+  sustain_log_level = "warning",
+  epochs = 40L,
+  batch_size = 32L,
   trace = TRUE,
-  ml_trace = 1,
+  ml_trace = 1L,
   log_dir = NULL,
-  log_write_interval = 10,
+  log_write_interval = 10L,
   lr_rate = 0.001,
   lr_warm_up_ratio = 0.02,
   optimizer = "AdamW"
@@ -153,41 +154,42 @@ Method for training a neural net.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{data_embeddings}}{Object of class \link{EmbeddedText} or \link{LargeDataSetForTextEmbeddings}.}
+\item{\code{data_embeddings}}{\verb{EmbeddedText, LargeDataSetForTextEmbeddings} Object of class \link{EmbeddedText} or \link{LargeDataSetForTextEmbeddings}.}
 
-\item{\code{data_val_size}}{\code{double} between 0 and 1, indicating the proportion of cases which should be used for the
-validation sample.}
+\item{\code{data_val_size}}{\code{double} between 0 and 1, indicating the proportion of cases which should be
+used for the validation sample during the estimation of the model.
+The remaining cases are part of the training data. Allowed values: \verb{0 < x < 1}}
 
-\item{\code{sustain_track}}{\code{bool} If \code{TRUE} energy consumption is tracked during training via the python library
-'codecarbon'.}
+\item{\code{sustain_track}}{\code{bool} If \code{TRUE} energy consumption is tracked during training via the python library 'codecarbon'.}
 
 \item{\code{sustain_iso_code}}{\code{string} ISO code (Alpha-3-Code) for the country. This variable must be set if
 sustainability should be tracked. A list can be found on Wikipedia:
-\url{https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes}.}
+\url{https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes}. Allowed values: any}
 
-\item{\code{sustain_region}}{Region within a country. Only available for USA and Canada See the documentation of
-'codecarbon' for more information. \url{https://mlco2.github.io/codecarbon/parameters.html}}
+\item{\code{sustain_region}}{\code{string} Region within a country. Only available for USA and Canada See the documentation of
+codecarbon for more information. \url{https://mlco2.github.io/codecarbon/parameters.html} Allowed values: any}
 
-\item{\code{sustain_interval}}{\code{int} Interval in seconds for measuring power usage.}
+\item{\code{sustain_interval}}{\code{int} Interval in seconds for measuring power usage. Allowed values: \code{1 <= x }}
 
-\item{\code{epochs}}{\code{int} Number of training epochs.}
+\item{\code{sustain_log_level}}{\code{string} Level for printing information to the console. Allowed values: 'debug', 'info', 'warning', 'error', 'critical'}
 
-\item{\code{batch_size}}{\code{int} Size of batches.}
+\item{\code{epochs}}{\code{int} Number of training epochs. Allowed values: \code{1 <= x }}
 
-\item{\code{trace}}{\code{bool} \code{TRUE}, if information about the estimation phase should be printed to the console.}
+\item{\code{batch_size}}{\code{int} Size of the batches for training. Allowed values: \code{1 <= x }}
 
-\item{\code{ml_trace}}{\code{int} \code{ml_trace=0} does not print any information about the training process from pytorch on
-the console. \code{ml_trace=1} prints a progress bar.}
+\item{\code{trace}}{\code{bool} \code{TRUE} if information about the estimation phase should be printed to the console.}
 
-\item{\code{log_dir}}{\code{string} Path to the directory where the log files should be saved. If no logging is desired set
-this argument to \code{NULL}.}
+\item{\code{ml_trace}}{\code{int} \code{ml_trace=0} does not print any information about the training process from pytorch on the console. Allowed values: \verb{0 <= x <= 1}}
+
+\item{\code{log_dir}}{\code{string} Path to the directory where the log files should be saved.
+If no logging is desired set this argument to \code{NULL}. Allowed values: any}
 
 \item{\code{log_write_interval}}{\code{int} Time in seconds determining the interval in which the logger should try to update
-the log files. Only relevant if \code{log_dir} is not \code{NULL}.}
+the log files. Only relevant if \code{log_dir} is not \code{NULL}. Allowed values: \code{1 <= x }}
 
-\item{\code{lr_rate}}{\code{double} Initial learning rate for the training.}
+\item{\code{lr_rate}}{\code{double} Initial learning rate for the training. Allowed values: \verb{0 < x <= 1}}
 
-\item{\code{lr_warm_up_ratio}}{\code{double} Number of epochs used for warm up.}
+\item{\code{lr_warm_up_ratio}}{\code{double} Number of epochs used for warm up. Allowed values: \verb{0 < x < 0.5}}
 
 \item{\code{optimizer}}{\code{string} determining the optimizer used for training. Allowed values: 'Adam', 'RMSprop', 'AdamW', 'SGD'}
 }
@@ -264,7 +266,7 @@ This method requires the \emph{R} package 'ggplot2' to work.
 \if{html}{\out{<div class="r">}}\preformatted{TEFeatureExtractor$plot_training_history(
   y_min = NULL,
   y_max = NULL,
-  text_size = 10
+  text_size = 10L
 )}\if{html}{\out{</div>}}
 }
 

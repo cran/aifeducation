@@ -81,7 +81,7 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
     param_emb_pool_type = NA,
 
     # Value used for indicating padding.
-    param_pad_value=NA,
+    param_pad_value = NA,
 
     # Aggregation method of the hidden states. Deprecated. Included for backward compatibility.
     param_aggregation = NA,
@@ -99,7 +99,7 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
 
     # Method for checking if the configuration is done successfully
     check_config_for_TRUE = function() {
-      if (private$configured == FALSE) {
+      if (!private$configured) {
         stop("The object is not configured. Please call the method configure.")
       }
     },
@@ -110,20 +110,20 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
     update_model_config = function() {
       current_pkg_version <- self$get_package_versions()$r_package_versions$aifeducation
       if (is.null_or_na(current_pkg_version)) {
-        update <- TRUE
+        need_update <- TRUE
       } else {
         if (check_versions(
           a = packageVersion("aifeducation"),
           operator = ">",
           b = self$get_package_versions()$r_package_versions$aifeducation
         )) {
-          update <- TRUE
+          need_update <- TRUE
         } else {
-          update <- FALSE
+          need_update <- FALSE
         }
       }
 
-      if (update) {
+      if (need_update) {
         param_dict <- get_param_dict()
         if (is.function(self$configure)) {
           param_names_new <- rlang::fn_fmls_names(self$configure)
@@ -133,7 +133,7 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
                 if (!is.null(param_dict[[param]]$default_historic)) {
                   private[[param]] <- list(param_dict[[param]]$default_historic)
                 } else {
-                  stop(paste("Historic default for", param, "is missing in parameter dictionary."))
+                  stop("Historic default for ", param, " is missing in parameter dictionary.")
                 }
               }
             }
@@ -182,7 +182,7 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
                          param_emb_layer_min = NULL,
                          param_emb_layer_max = NULL,
                          param_emb_pool_type = NULL,
-                         param_pad_value=-100,
+                         param_pad_value = -100L,
                          param_aggregation = NULL) {
       private$model_name <- model_name
       private$model_label <- model_label
@@ -195,7 +195,7 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
 
       private$param_features <- param_features
       private$param_chunks <- param_chunks
-      private$param_pad_value=param_pad_value
+      private$param_pad_value <- param_pad_value
 
       private$param_emb_layer_min <- param_emb_layer_min
       private$param_emb_layer_max <- param_emb_layer_max
@@ -238,7 +238,7 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
         param_emb_layer_max = private$param_emb_layer_max,
         param_emb_pool_type = private$param_emb_pool_type,
         param_aggregation = private$param_aggregation,
-        param_pad_value=private$param_pad_value
+        param_pad_value = private$param_pad_value
       )
       return(tmp)
     },
@@ -248,7 +248,7 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
     #' @param dir_path Path where the data set set is stored.
     #' @return Method does not return anything. It loads an object from disk.
     load_from_disk = function(dir_path) {
-      if (self$is_configured() == TRUE) {
+      if (self$is_configured()) {
         stop("The object has already been configured. If you would like to add
              data please create a new object or use one of the following methods:
              'load', 'add_embeddings_from_array', 'add_embeddings_from_EmbeddedText' or
@@ -274,14 +274,14 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
         param_emb_layer_max = config_file$private$param_emb_layer_max,
         param_emb_pool_type = config_file$private$param_emb_pool_type,
         param_aggregation = config_file$private$param_aggregation,
-        param_pad_value=config_file$private$param_pad_value
+        param_pad_value = config_file$private$param_pad_value
       )
 
-      #Update model configuration if necessary
+      # Update model configuration if necessary
       private$update_model_config()
 
       # Check for feature extractor and add information
-      if (is.null_or_na(config_file$private$feature_extractor$model_name) == FALSE) {
+      if (!is.null_or_na(config_file$private$feature_extractor$model_name)) {
         self$add_feature_extractor_info(
           model_name = config_file$private$feature_extractor$model_name,
           model_label = config_file$private$feature_extractor$model_label,
@@ -364,7 +364,7 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
     #'   `get_original_features` of this class.
     #' @return Returns an `int` describing the number of features/dimensions of the text embeddings.
     get_features = function() {
-      if (self$is_compressed() == TRUE) {
+      if (self$is_compressed()) {
         return(private$feature_extractor$features)
       } else {
         return(private$param_features)
@@ -382,7 +382,7 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
     #-------------------------------------------------------------------------
     #' @description Value for indicating padding.
     #' @return Returns an `int` describing the value used for padding.
-    get_pad_value=function(){
+    get_pad_value = function() {
       return(private$param_pad_value)
     },
 
@@ -395,22 +395,22 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
     add_embeddings_from_array = function(embedding_array) {
       private$check_config_for_TRUE()
 
-      if (is.array(embedding_array) == FALSE) {
+      if (!is.array(embedding_array)) {
         stop("Input must be an array.")
       }
-      if (self$get_features() != dim(embedding_array)[3]) {
+      if (self$get_features() != dim(embedding_array)[3L]) {
         stop("The number of features does not fit to the underlying
              text embedding model. Please check if you either used compressed
              embedding for a dataset of uncompressed embeddings or uncrompressed
              embeddings for a dataset of compressed embeddings.")
       }
-      if (self$get_times() != dim(embedding_array)[2]) {
-        stop("Number of times/chunks does not fit to the underlying text embedding model.")
+      if (self$get_times() != dim(embedding_array)[2L]) {
+        stop("Number of times respective chunks does not fit to the underlying text embedding model.")
       }
 
       # Check the number of rows and duplicate if necessary
-      n_cases <- dim(embedding_array)[1]
-      if (n_cases == 1) {
+      n_cases <- dim(embedding_array)[1L]
+      if (n_cases == 1L) {
         embedding_array <- array_form_bind(embedding_array, embedding_array)
       }
       # Transform to a python dict
@@ -421,14 +421,14 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
           text_embeddings = embedding_array,
           features = self$get_features(),
           times = self$get_times(),
-          pad_value=self$get_pad_value()
+          pad_value = self$get_pad_value()
         )
       )
       # Create new dataset
       new_dataset <- datasets$Dataset$from_dict(new_dataset_dict)
       # Check the number of rows and remove duplicate if necessary
-      if (n_cases == 1) {
-        new_dataset <- new_dataset$select(indices = list(as.integer(0)))
+      if (n_cases == 1L) {
+        new_dataset <- new_dataset$select(indices = list(0L))
       }
       # add dataset
       private$add(new_dataset)
@@ -443,26 +443,26 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
     add_embeddings_from_EmbeddedText = function(EmbeddedText) {
       private$check_config_for_TRUE()
 
-      if ("EmbeddedText" %in% class(EmbeddedText) == FALSE) {
+      if (!inherits(EmbeddedText, "EmbeddedText")) {
         stop("Input must be an object of class EmbeddedText.")
       }
 
       # Select array
       embedding_array <- EmbeddedText$embeddings
-      n_cases <- dim(embedding_array)[1]
+      n_cases <- dim(embedding_array)[1L]
 
-      if (self$get_features() != dim(embedding_array)[3]) {
+      if (self$get_features() != dim(embedding_array)[3L]) {
         stop("The number of features does not fit to the underlying
              text embedding model. Please check if you either used compressed
              embedding for a dataset of uncompressed embeddings or uncrompressed
              embeddings for a dataset of compressed embeddings.")
       }
-      if (self$get_times() != dim(embedding_array)[2]) {
-        stop("Number of times/chunks does not fit to the underlying text embedding model.")
+      if (self$get_times() != dim(embedding_array)[2L]) {
+        stop("Number of times respective chunks does not fit to the underlying text embedding model.")
       }
 
       # Check the number of rows and duplicate if necessary
-      if (n_cases == 1) {
+      if (n_cases == 1L) {
         embedding_array <- array_form_bind(embedding_array, embedding_array)
       }
       # Transform to a python dict
@@ -473,14 +473,14 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
           text_embeddings = embedding_array,
           features = self$get_features(),
           times = self$get_times(),
-          pad_value=self$get_pad_value()
+          pad_value = self$get_pad_value()
         )
       )
       # Create new dataset
       new_dataset <- datasets$Dataset$from_dict(new_dataset_dict)
       # Check the number of rows and remove duplicate if necessary
-      if (n_cases == 1) {
-        new_dataset <- new_dataset$select(indices = list(as.integer(0)))
+      if (n_cases == 1L) {
+        new_dataset <- new_dataset$select(indices = list(0L))
       }
       # add dataset
       private$add(new_dataset)
@@ -495,7 +495,7 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
       private$check_config_for_TRUE()
 
       # Argument Checking
-      check_class(object=dataset, classes=c("LargeDataSetForTextEmbeddings", allow_NULL=FALSE))
+      check_class(object = dataset, classes = c("LargeDataSetForTextEmbeddings", allow_NULL = FALSE))
 
       # Add new data
       if (dataset$get_text_embedding_model_name() == private$model_name) {
@@ -532,10 +532,10 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
         param_emb_pool_type = private$param_emb_pool_type,
         param_aggregation = private$param_aggregation,
         embeddings = py_dataset_to_embeddings(self$get_dataset()),
-        param_pad_value=private$param_pad_value
+        param_pad_value = private$param_pad_value
       )
 
-      if (self$is_compressed() == TRUE) {
+      if (self$is_compressed()) {
         new_data_set$add_feature_extractor_info(
           model_name = private$feature_extractor$model_name,
           model_label = private$feature_extractor$model_label,
@@ -549,3 +549,6 @@ LargeDataSetForTextEmbeddings <- R6::R6Class(
     }
   )
 )
+
+# Add the model to the user list
+DataSetsIndex$LargeDataSetForTextEmbeddings <- ("LargeDataSetForTextEmbeddings")

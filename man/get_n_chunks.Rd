@@ -4,7 +4,7 @@
 \alias{get_n_chunks}
 \title{Get the number of chunks/sequences for each case}
 \usage{
-get_n_chunks(text_embeddings, features, times, pad_value = -100)
+get_n_chunks(text_embeddings, features, times, pad_value = -100L)
 }
 \arguments{
 \item{text_embeddings}{\code{data.frame} or \code{array} containing the text embeddings.}
@@ -30,6 +30,7 @@ Other Utils Developers:
 \code{\link{create_synthetic_units_from_matrix}()},
 \code{\link{generate_id}()},
 \code{\link{get_synthetic_cases_from_matrix}()},
+\code{\link{get_time_stamp}()},
 \code{\link{matrix_to_array_c}()},
 \code{\link{tensor_to_matrix_c}()},
 \code{\link{to_categorical_c}()}

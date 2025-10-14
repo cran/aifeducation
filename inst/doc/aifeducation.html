@@ -48,8 +48,9 @@ overflow: visible;
 }
 </style>
 <style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -60,7 +61,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -394,7 +395,8 @@ function <code>install_aifeducation</code> as follows:</p>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="at">install_aifeducation_studio =</span> <span class="cn">TRUE</span>,</span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">python_version =</span> <span class="st">&quot;3.12&quot;</span>,</span>
 <span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="at">cuda_version =</span> <span class="st">&quot;12.4&quot;</span>,</span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="at">use_conda =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="at">use_conda =</span> <span class="cn">FALSE</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>)</span></code></pre></div>
 <p>This function will install python, and all relevant python libraries
 into a virtual environment called “aifeducation”.</p>
 <p>In addition, we recommend to set
@@ -457,7 +459,31 @@ function:</p>
 <span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="at">update_aifeducation_studio =</span> <span class="cn">TRUE</span>,</span>
 <span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">env_type =</span> <span class="st">&quot;auto&quot;</span>,</span>
 <span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">cuda_version =</span> <span class="st">&quot;12.4&quot;</span>,</span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">envname =</span> <span class="st">&quot;aifeducation&quot;</span>)</span></code></pre></div>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">envname =</span> <span class="st">&quot;aifeducation&quot;</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>)</span></code></pre></div>
+<blockquote>
+<p>Starting with version 1.1.2 the python package ‘calflops’ is
+necessary. If you used aifeducation with version 1.1.1 or lower please
+install this package manually with
+<code>reticulate::py_install(&quot;calflops&quot;)</code> or call
+<code>aifeducation::update_aifeducation</code>.</p>
+</blockquote>
+</div>
+<div id="recommended-version-of-python-packages" class="section level1">
+<h1>5) Recommended Version of Python Packages</h1>
+<p>Using the function above will install the newest and recommended
+version of the core python packages in order to use this package. In the
+case you would like to install the packages manually we recommend the
+following versions.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>aifeducation<span class="sc">::</span><span class="fu">get_recommended_py_versions</span>()</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&gt;     transformers tokenizers pandas datasets codecarbon safetensors torcheval</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; min       4.56.0     0.22.0  2.3.2    3.6.0      3.0.0       0.6.2     0.0.7</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; max       4.56.2     0.22.0  2.3.2    3.6.0      3.0.4       0.6.2     0.0.7</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt;     accelerate calflops</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; min     1.10.1    0.3.2</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt; max     1.10.1    0.3.2</span></span></code></pre></div>
+<p>We have tested the package with these versions ensuring that
+<em>aifeducation</em> works correctly.</p>
 </div>
 
 

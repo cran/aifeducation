@@ -10,13 +10,13 @@ object_class_names <- get_TEClassifiers_class_names(super_class = "ClassifiersBa
 # object_class_names=c("TEClassifierSequential")
 # object_class_names="TEClassifierParallel"
 # object_class_names="TEClassifierSequentialPrototype"
-# object_class_names="TEClassifierRegular"
+# object_class_names <- "TEClassifierRegular"
 
 max_samples <- 20
-max_samples_CI <- 10
+max_samples_CI <- 5
 
 max_samples_training <- 2
-max_samples_training_CI<-1
+max_samples_training_CI <- 1
 
 class_range <- c(2, 3)
 
@@ -24,7 +24,6 @@ prob_precision <- 1e-6
 
 # Skip Tests-------------------------------------------------------------------
 skip_creation_test <- FALSE
-skip_method_save_load <- FALSE
 skip_function_save_load <- FALSE
 skip_training_test <- FALSE
 skip_documentation <- FALSE
@@ -97,6 +96,7 @@ for (object_class_name in object_class_names) {
             name = NULL,
             label = "Classifier for Estimating a Postive or Negative Rating of Movie Reviews",
             sustain_interval = 30,
+            sustain_log_level = "error",
             act_fct = "ELU",
             feat_size = 64,
             intermediate_features = 10,
@@ -108,7 +108,7 @@ for (object_class_name in object_class_names) {
             tf_num_heads = 2,
             ng_conv_ks_min = 2,
             ng_conv_ks_max = 3,
-            trace=random_bool_on_CI(),
+            trace = random_bool_on_CI(),
             epochs = 10,
             batch_size = 20,
             ml_trace = 0,
@@ -120,6 +120,7 @@ for (object_class_name in object_class_names) {
             pl_min = 0,
             sustain_track = TRUE,
             sustain_iso_code = "DEU",
+            sustain_log_level = "error",
             data_val_size = 0.25,
             lr_rate = 1e-3,
             dense_size = 5,
@@ -132,15 +133,16 @@ for (object_class_name in object_class_names) {
           )
         )
 
-
         classifier <- NULL
         gc()
 
         # Create test object with a given combination of args
         classifier <- create_object(object_class_name)
-        do.call(
-          what = classifier$configure,
-          args = test_combination
+        suppressMessages(
+          do.call(
+            what = classifier$configure,
+            args = test_combination
+          )
         )
 
         test_that(paste("count parameter", object_class_name, get_current_args_for_print(test_combination)), {
@@ -149,10 +151,12 @@ for (object_class_name in object_class_names) {
 
 
         test_that(paste("Number of Predictions", object_class_name, get_current_args_for_print(test_combination)), {
-          predictions <- classifier$predict(
-            newdata = test_embeddings_reduced,
-            batch_size = 2,
-            ml_trace = 0
+          suppressMessages(
+            predictions <- classifier$predict(
+              newdata = test_embeddings_reduced,
+              batch_size = 2,
+              ml_trace = 0
+            )
           )
           expect_equal(
             object = length(predictions$expected_category),
@@ -161,20 +165,24 @@ for (object_class_name in object_class_names) {
         })
 
         test_that(paste("predict - single case", object_class_name), {
-          prediction <- classifier$predict(
-            newdata = test_embeddings_single_case,
-            batch_size = 2,
-            ml_trace = 0
+          suppressMessages(
+            prediction <- classifier$predict(
+              newdata = test_embeddings_single_case,
+              batch_size = 2,
+              ml_trace = 0
+            )
           )
           expect_equal(
             object = nrow(prediction),
             expected = 1
           )
 
-          prediction_LD <- classifier$predict(
-            newdata = test_embeddings_single_case_LD,
-            batch_size = 2,
-            ml_trace = 0
+          suppressMessages(
+            prediction_LD <- classifier$predict(
+              newdata = test_embeddings_single_case_LD,
+              batch_size = 2,
+              ml_trace = 0
+            )
           )
           expect_equal(
             object = nrow(prediction_LD),
@@ -186,15 +194,19 @@ for (object_class_name in object_class_names) {
           # EmbeddedText
           predictions <- NULL
           predictions_2 <- NULL
-          predictions <- classifier$predict(
-            newdata = test_embeddings_reduced,
-            batch_size = 2,
-            ml_trace = 0
+          suppressMessages(
+            predictions <- classifier$predict(
+              newdata = test_embeddings_reduced,
+              batch_size = 2,
+              ml_trace = 0
+            )
           )
-          predictions_2 <- classifier$predict(
-            newdata = test_embeddings_reduced,
-            batch_size = 2,
-            ml_trace = 0
+          suppressMessages(
+            predictions_2 <- classifier$predict(
+              newdata = test_embeddings_reduced,
+              batch_size = 2,
+              ml_trace = 0
+            )
           )
           expect_equal(predictions[, 1:(ncol(predictions) - 1)], predictions_2[, 1:(ncol(predictions_2) - 1)],
             tolerance = 1e-6
@@ -203,15 +215,19 @@ for (object_class_name in object_class_names) {
           # LargeDataSetForTextEmbeddings
           predictions <- NULL
           predictions_2 <- NULL
-          predictions <- classifier$predict(
-            newdata = test_embeddings_reduced_LD,
-            batch_size = 2,
-            ml_trace = 0
+          suppressMessages(
+            predictions <- classifier$predict(
+              newdata = test_embeddings_reduced_LD,
+              batch_size = 2,
+              ml_trace = 0
+            )
           )
-          predictions_2 <- classifier$predict(
-            newdata = test_embeddings_reduced_LD,
-            batch_size = 2,
-            ml_trace = 0
+          suppressMessages(
+            predictions_2 <- classifier$predict(
+              newdata = test_embeddings_reduced_LD,
+              batch_size = 2,
+              ml_trace = 0
+            )
           )
           expect_equal(predictions[, 1:(ncol(predictions) - 1)], predictions_2[, 1:(ncol(predictions_2) - 1)],
             tolerance = 1e-6
@@ -219,7 +235,7 @@ for (object_class_name in object_class_names) {
         })
 
         if (!is.null(test_combination$attention)) {
-          if (!(test_combination$attention == "Fourier" & (object_class_name%in%c("TEClassifierRegular","TEClassifierProtoNet")))) {
+          if (!(test_combination$attention == "Fourier" & (object_class_name %in% c("TEClassifierRegular", "TEClassifierProtoNet")))) {
             test_that(paste("predict - order invariance", object_class_name, get_current_args_for_print(test_combination)), {
               embeddings_ET_perm <- test_embeddings_reduced$clone(deep = TRUE)
               perm <- sample(x = seq.int(from = 1, to = nrow(embeddings_ET_perm$embeddings)), replace = FALSE)
@@ -230,15 +246,19 @@ for (object_class_name in object_class_names) {
               # EmbeddedText
               predictions <- NULL
               predictions_Perm <- NULL
-              predictions <- classifier$predict(
-                newdata = test_embeddings_reduced,
-                batch_size = 50,
-                ml_trace = 0
+              suppressMessages(
+                predictions <- classifier$predict(
+                  newdata = test_embeddings_reduced,
+                  batch_size = 50,
+                  ml_trace = 0
+                )
               )
-              predictions_Perm <- classifier$predict(
-                newdata = embeddings_ET_perm,
-                batch_size = 50,
-                ml_trace = 0
+              suppressMessages(
+                predictions_Perm <- classifier$predict(
+                  newdata = embeddings_ET_perm,
+                  batch_size = 50,
+                  ml_trace = 0
+                )
               )
 
               expect_equal(
@@ -250,16 +270,20 @@ for (object_class_name in object_class_names) {
               # LargeDataSetForTextEmbeddings
               predictions <- NULL
               predictions_Perm <- NULL
-              predictions <- classifier$predict(
-                newdata = test_embeddings_reduced_LD,
-                batch_size = 50,
-                ml_trace = 0
+              suppressMessages(
+                predictions <- classifier$predict(
+                  newdata = test_embeddings_reduced_LD,
+                  batch_size = 50,
+                  ml_trace = 0
+                )
               )
 
-              predictions_Perm <- classifier$predict(
-                newdata = embeddings_ET_perm$convert_to_LargeDataSetForTextEmbeddings(),
-                batch_size = 50,
-                ml_trace = 0
+              suppressMessages(
+                predictions_Perm <- classifier$predict(
+                  newdata = embeddings_ET_perm$convert_to_LargeDataSetForTextEmbeddings(),
+                  batch_size = 50,
+                  ml_trace = 0
+                )
               )
 
               expect_equal(
@@ -273,15 +297,19 @@ for (object_class_name in object_class_names) {
 
 
         test_that(paste("predict - data source invariance", object_class_name, get_current_args_for_print(test_combination)), {
-          predictions_ET <- classifier$predict(
-            newdata = test_embeddings_reduced,
-            batch_size = 2,
-            ml_trace = 0
+          suppressMessages(
+            predictions_ET <- classifier$predict(
+              newdata = test_embeddings_reduced,
+              batch_size = 2,
+              ml_trace = 0
+            )
           )
-          predictions_LD <- classifier$predict(
-            newdata = test_embeddings_reduced_LD,
-            batch_size = 2,
-            ml_trace = 0
+          suppressMessages(
+            predictions_LD <- classifier$predict(
+              newdata = test_embeddings_reduced_LD,
+              batch_size = 2,
+              ml_trace = 0
+            )
           )
           expect_equal(predictions_ET[, 1:(ncol(predictions_ET) - 1)], predictions_LD[, 1:(ncol(predictions_LD) - 1)],
             tolerance = 1e-6
@@ -289,60 +317,12 @@ for (object_class_name in object_class_names) {
         })
         gc()
       }
-
-      # Save and load tests-------------------------------------------------------
-      if (!skip_method_save_load) {
-        test_that(paste("method save and load", object_class_name, get_current_args_for_print(test_combination)), {
-          classifier <- create_object(object_class_name)
-          do.call(
-            what = classifier$configure,
-            args = test_combination
-          )
-
-          # Predictions before saving and loading
-          predictions <- classifier$predict(
-            newdata = test_embeddings_reduced,
-            batch_size = 2,
-            ml_trace = 0
-          )
-
-          # Save and load
-          folder_name <- paste0("method_save_load_", generate_id())
-          dir_path <- paste0(root_path_results, "/", folder_name)
-          classifier$save(
-            dir_path = root_path_results,
-            folder_name = folder_name
-          )
-          classifier$load(dir_path = dir_path)
-
-          # Predict after loading
-          predictions_2 <- classifier$predict(
-            newdata = test_embeddings_reduced,
-            batch_size = 2,
-            ml_trace = 0
-          )
-
-          # Compare predictions
-          i <- sample(x = seq.int(from = 1, to = nrow(predictions)), size = 1)
-          expect_equal(predictions[i, , drop = FALSE],
-            predictions_2[i, , drop = FALSE],
-            tolerance = 1e-6
-          )
-
-          # Clean Directory
-          unlink(
-            x = dir_path,
-            recursive = TRUE
-          )
-        })
-      }
     }
 
     # Function for loading and saving models-----------------------------------
+
     if (!skip_function_save_load) {
-      test_that(paste("function save and load", object_class_name, get_current_args_for_print(test_combination)), {
-        classifier <- NULL
-        gc()
+      test_that(paste("function save and load", object_class_name), {
         # Randomly select a configuration for training
         test_combination <- generate_args_for_tests(
           object_name = object_class_name,
@@ -358,6 +338,7 @@ for (object_class_name in object_class_names) {
             name = NULL,
             label = "Classifier for Estimating a Postive or Negative Rating of Movie Reviews",
             sustain_interval = 30,
+            sustain_log_level = "error",
             act_fct = "ELU",
             feat_size = 64,
             intermediate_features = 10,
@@ -369,7 +350,7 @@ for (object_class_name in object_class_names) {
             tf_num_heads = 2,
             ng_conv_ks_min = 2,
             ng_conv_ks_max = 3,
-            trace=random_bool_on_CI(),
+            trace = random_bool_on_CI(),
             epochs = 10,
             batch_size = 20,
             ml_trace = 0,
@@ -381,6 +362,7 @@ for (object_class_name in object_class_names) {
             pl_min = 0,
             sustain_track = TRUE,
             sustain_iso_code = "DEU",
+            sustain_log_level = "error",
             data_val_size = 0.25,
             lr_rate = 1e-3,
             dense_size = 5,
@@ -392,19 +374,26 @@ for (object_class_name in object_class_names) {
             merge_attention_type = "MultiHead"
           )
         )
+        classifier <- NULL
+        gc()
+
 
         # Create test object with a given combination of args
         classifier <- create_object(object_class_name)
-        do.call(
-          what = classifier$configure,
-          args = test_combination
+        suppressMessages(
+          do.call(
+            what = classifier$configure,
+            args = test_combination
+          )
         )
 
         # Predictions before saving and loading
-        predictions <- classifier$predict(
-          newdata = test_embeddings_reduced,
-          batch_size = 2,
-          ml_trace = 0
+        suppressMessages(
+          predictions <- classifier$predict(
+            newdata = test_embeddings_reduced,
+            batch_size = 2,
+            ml_trace = 0
+          )
         )
 
         # Save and load
@@ -415,14 +404,22 @@ for (object_class_name in object_class_names) {
           dir_path = root_path_results,
           folder_name = folder_name
         )
-        classifier <- NULL
-        classifier <- load_from_disk(dir_path = dir_path)
+        classifier2 <- NULL
+        classifier2 <- load_from_disk(dir_path = dir_path)
+
+        # Is config equal after loading
+        expect_equal(
+          classifier$get_model_config(),
+          classifier2$get_model_config()
+        )
 
         # Predict after loading
-        predictions_2 <- classifier$predict(
-          newdata = test_embeddings_reduced,
-          batch_size = 2,
-          ml_trace = 0
+        suppressMessages(
+          predictions_2 <- classifier2$predict(
+            newdata = test_embeddings_reduced,
+            batch_size = 2,
+            ml_trace = 0
+          )
         )
 
         # Compare predictions
@@ -459,6 +456,7 @@ for (object_class_name in object_class_names) {
             name = NULL,
             label = "Classifier for Estimating a Postive or Negative Rating of Movie Reviews",
             sustain_interval = 30,
+            sustain_log_level = "error",
             act_fct = "ELU",
             feat_size = 64,
             intermediate_features = 10,
@@ -470,7 +468,7 @@ for (object_class_name in object_class_names) {
             tf_num_heads = 2,
             ng_conv_ks_min = 2,
             ng_conv_ks_max = 3,
-            trace=random_bool_on_CI(),
+            trace = random_bool_on_CI(),
             epochs = 10,
             batch_size = 20,
             ml_trace = 0,
@@ -482,6 +480,7 @@ for (object_class_name in object_class_names) {
             pl_min = 0,
             sustain_track = TRUE,
             sustain_iso_code = "DEU",
+            sustain_log_level = "error",
             data_val_size = 0.25,
             lr_rate = 1e-3,
             dense_size = 5,
@@ -498,9 +497,11 @@ for (object_class_name in object_class_names) {
 
         # Create test object with a given combination of args
         classifier <- create_object(object_class_name)
-        do.call(
-          what = classifier$configure,
-          args = test_combination
+        suppressMessages(
+          do.call(
+            what = classifier$configure,
+            args = test_combination
+          )
         )
 
         classifier$set_model_description(
@@ -542,7 +543,7 @@ for (object_class_name in object_class_names) {
         classifier$set_model_license("test_license")
         expect_equal(
           object = classifier$get_model_license(),
-          expected = c("test_license")
+          expected = "test_license"
         )
 
 
@@ -550,7 +551,7 @@ for (object_class_name in object_class_names) {
         classifier$set_documentation_license("test_license")
         expect_equal(
           object = classifier$get_documentation_license(),
-          expected = c("test_license")
+          expected = "test_license"
         )
 
 
@@ -588,7 +589,7 @@ for (object_class_name in object_class_names) {
       log_dir <- paste0(root_path_results, "/", generate_id(5))
       create_dir(log_dir, trace = FALSE)
 
-      for (j in 1:check_adjust_n_samples_on_CI(n_samples_requested = max_samples_training,n_CI=max_samples_training_CI) ) {
+      for (j in 1:check_adjust_n_samples_on_CI(n_samples_requested = max_samples_training, n_CI = max_samples_training_CI)) {
         # Config sample
         test_combination <- generate_args_for_tests(
           object_name = object_class_name,
@@ -604,6 +605,7 @@ for (object_class_name in object_class_names) {
             name = NULL,
             label = "Classifier for Estimating a Postive or Negative Rating of Movie Reviews",
             sustain_interval = 30,
+            sustain_log_level = "error",
             act_fct = "ELU",
             feat_size = 32,
             intermediate_features = 10,
@@ -615,7 +617,7 @@ for (object_class_name in object_class_names) {
             tf_num_heads = 2,
             ng_conv_ks_min = 2,
             ng_conv_ks_max = 3,
-            trace=random_bool_on_CI(),
+            trace = random_bool_on_CI(),
             epochs = 10,
             batch_size = 20,
             ml_trace = 0,
@@ -627,6 +629,7 @@ for (object_class_name in object_class_names) {
             pl_min = 0,
             sustain_track = TRUE,
             sustain_iso_code = "DEU",
+            sustain_log_level = "error",
             data_val_size = 0.25,
             lr_rate = 1e-3,
             dense_size = 5,
@@ -646,6 +649,12 @@ for (object_class_name in object_class_names) {
         }
 
         if (object_class_name == "TEClassifierSequential" & j <= 1) {
+          use_pl <- TRUE
+        } else {
+          use_pl <- FALSE
+        }
+
+        if (object_class_name == "TEClassifierParallel" & j <= 1) {
           use_sc <- TRUE
         } else {
           use_sc <- FALSE
@@ -664,11 +673,12 @@ for (object_class_name in object_class_names) {
             name = NULL,
             label = "Classifier for Estimating a Postive or Negative Rating of Movie Reviews",
             sustain_interval = 30,
+            sustain_log_level = "error",
             act_fct = "ELU",
             rec_dropout = 0.1,
             dense_dropout = 0.1,
             encoder_dropout = 0.1,
-            trace=random_bool_on_CI(),
+            trace = random_bool_on_CI(),
             epochs = 5,
             batch_size = 20,
             ml_trace = 0,
@@ -684,6 +694,7 @@ for (object_class_name in object_class_names) {
             sc_max_k = 2,
             sustain_track = TRUE,
             sustain_iso_code = "DEU",
+            sustain_log_level = "error",
             data_val_size = 0.25,
             lr_rate = 1e-3,
             dense_size = 5,
@@ -699,9 +710,11 @@ for (object_class_name in object_class_names) {
         classifier <- NULL
         gc()
         classifier <- create_object(object_class_name)
-        do.call(
-          what = classifier$configure,
-          args = test_combination
+        suppressMessages(
+          do.call(
+            what = classifier$configure,
+            args = test_combination
+          )
         )
 
         test_that(paste(
@@ -710,9 +723,11 @@ for (object_class_name in object_class_names) {
           get_current_args_for_print(train_args_combinations)
         ), {
           expect_no_error(
-            do.call(
-              what = classifier$train,
-              args = train_args_combinations
+            suppressMessages(
+              do.call(
+                what = classifier$train,
+                args = train_args_combinations
+              )
             )
           )
 
@@ -750,25 +765,25 @@ for (object_class_name in object_class_names) {
           } else {
             pl_step <- NULL
           }
-          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "loss",final_training=FALSE,add_min_max=TRUE), class = "ggplot")
-          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "avg_iota",final_training=FALSE,add_min_max=TRUE), class = "ggplot")
-          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "accuracy",final_training=FALSE,add_min_max=TRUE), class = "ggplot")
-          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "balanced_accuracy",final_training=FALSE,add_min_max=TRUE), class = "ggplot")
+          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "loss", final_training = FALSE, add_min_max = TRUE), class = "ggplot")
+          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "avg_iota", final_training = FALSE, add_min_max = TRUE), class = "ggplot")
+          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "accuracy", final_training = FALSE, add_min_max = TRUE), class = "ggplot")
+          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "balanced_accuracy", final_training = FALSE, add_min_max = TRUE), class = "ggplot")
 
-          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "loss",final_training=FALSE,add_min_max=TRUE,y_min = 0,y_max = 2), class = "ggplot")
-          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "avg_iota",final_training=FALSE,add_min_max=TRUE,y_min = 0,y_max = 1), class = "ggplot")
-          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "accuracy",final_training=FALSE,add_min_max=TRUE,y_min = 0,y_max = 1), class = "ggplot")
-          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "balanced_accuracy",final_training=FALSE,add_min_max=TRUE,y_min = 0,y_max = 1), class = "ggplot")
+          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "loss", final_training = FALSE, add_min_max = TRUE, y_min = 0, y_max = 2), class = "ggplot")
+          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "avg_iota", final_training = FALSE, add_min_max = TRUE, y_min = 0, y_max = 1), class = "ggplot")
+          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "accuracy", final_training = FALSE, add_min_max = TRUE, y_min = 0, y_max = 1), class = "ggplot")
+          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "balanced_accuracy", final_training = FALSE, add_min_max = TRUE, y_min = 0, y_max = 1), class = "ggplot")
 
-          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "loss",final_training=FALSE,add_min_max=FALSE), class = "ggplot")
-          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "avg_iota",final_training=FALSE,add_min_max=FALSE), class = "ggplot")
-          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "accuracy",final_training=FALSE,add_min_max=FALSE), class = "ggplot")
-          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "balanced_accuracy",final_training=FALSE,add_min_max=FALSE), class = "ggplot")
+          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "loss", final_training = FALSE, add_min_max = FALSE), class = "ggplot")
+          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "avg_iota", final_training = FALSE, add_min_max = FALSE), class = "ggplot")
+          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "accuracy", final_training = FALSE, add_min_max = FALSE), class = "ggplot")
+          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "balanced_accuracy", final_training = FALSE, add_min_max = FALSE), class = "ggplot")
 
-          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "loss",final_training=TRUE), class = "ggplot")
-          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "avg_iota",final_training=TRUE), class = "ggplot")
-          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "accuracy",final_training=TRUE), class = "ggplot")
-          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "balanced_accuracy",final_training=TRUE), class = "ggplot")
+          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "loss", final_training = TRUE), class = "ggplot")
+          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "avg_iota", final_training = TRUE), class = "ggplot")
+          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "accuracy", final_training = TRUE), class = "ggplot")
+          expect_s3_class(object = classifier$plot_training_history(pl_step = pl_step, measure = "balanced_accuracy", final_training = TRUE), class = "ggplot")
         })
 
         test_that(paste(

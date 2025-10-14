@@ -4,7 +4,7 @@
 \alias{generate_id}
 \title{Generate ID suffix for objects}
 \usage{
-generate_id(length = 16)
+generate_id(length = 16L)
 }
 \arguments{
 \item{length}{\code{int} determining the length of the id suffix.}
@@ -23,6 +23,7 @@ Other Utils Developers:
 \code{\link{create_synthetic_units_from_matrix}()},
 \code{\link{get_n_chunks}()},
 \code{\link{get_synthetic_cases_from_matrix}()},
+\code{\link{get_time_stamp}()},
 \code{\link{matrix_to_array_c}()},
 \code{\link{tensor_to_matrix_c}()},
 \code{\link{to_categorical_c}()}

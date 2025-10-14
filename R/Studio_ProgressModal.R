@@ -159,18 +159,12 @@ start_and_monitor_long_task <- function(id,
     # Reset log
     reset_log(log_path = log_path)
     loss_log_path <- paste0(dirname(log_path), "/aifeducation_loss.log")
-    #if (ExtendedTask_type %in% c("classifier", "feature_extractor")) {
-      reset_loss_log(
-        log_path = loss_log_path,
-        #epochs = ExtendedTask_arguments$epochs
-        epochs = 2
-      )
-    #} else if (ExtendedTask_type == "train_transformer") {
-    #  reset_loss_log(
-    #    log_path = loss_log_path,
-    #    epochs = ExtendedTask_arguments$params$n_epoch
-      #)
-    #}
+    # if (ExtendedTask_type %in% c("classifier", "feature_extractor")) {
+    reset_loss_log(
+      log_path = loss_log_path,
+      # epochs = ExtendedTask_arguments$epochs
+      epochs = 2
+    )
 
     # Create progress modal
     progress_modal <- create_process_modal(
@@ -187,13 +181,14 @@ start_and_monitor_long_task <- function(id,
     shiny::showModal(progress_modal)
 
     # Add current env to arguments
-    if(!(ExtendedTask_type %in% c(
+    if (!(ExtendedTask_type %in% c(
       "classifier",
       "feature_extractor",
       "create_transformer",
       "train_transformer",
       "raw_texts",
-      "embed_raw_text"))){
+      "embed_raw_text"
+    ))) {
       ExtendedTask_arguments["current_conda_env"] <- get_py_env_name()
     }
 
@@ -203,7 +198,7 @@ start_and_monitor_long_task <- function(id,
       file = paste0(getwd(), "/arguments.rda")
     )
     future::plan(future::multisession)
-    #future::plan(future::sequential)
+    # future::plan(future::sequential)
 
     # Start ExtendedTask
     CurrentTask <- NULL
@@ -211,21 +206,21 @@ start_and_monitor_long_task <- function(id,
       CurrentTask <- shiny::ExtendedTask$new(long_add_texts_to_dataset)
     } else if (ExtendedTask_type == "embed_raw_text") {
       CurrentTask <- shiny::ExtendedTask$new(long_transform_text_to_embeddings)
-    } else if (ExtendedTask_type == "classifier"|
-               ExtendedTask_type == "feature_extractor") {
+    } else if (ExtendedTask_type == "classifier" |
+      ExtendedTask_type == "feature_extractor" |
+      ExtendedTask_type == "train_transformer") {
       CurrentTask <- shiny::ExtendedTask$new(long_models)
-    } else if (ExtendedTask_type == "create_transformer"|
-               ExtendedTask_type == "train_transformer") {
+    } else if (ExtendedTask_type == "create_transformer") {
       CurrentTask <- shiny::ExtendedTask$new(long_transformers)
     }
 
-    if(ExtendedTask_type == "classifier"|
-       ExtendedTask_type == "feature_extractor"|
-       ExtendedTask_type == "create_transformer"|
-       ExtendedTask_type == "train_transformer"){
+    if (ExtendedTask_type == "classifier" |
+      ExtendedTask_type == "feature_extractor" |
+      ExtendedTask_type == "create_transformer" |
+      ExtendedTask_type == "train_transformer") {
       CurrentTask$invoke(args)
     } else {
-      if (!is.null(CurrentTask)) do.call(what = CurrentTask$invoke, args = ExtendedTask_arguments,quote = FALSE)
+      if (!is.null(CurrentTask)) do.call(what = CurrentTask$invoke, args = ExtendedTask_arguments, quote = FALSE)
     }
 
     # Check progress of the task
@@ -235,7 +230,7 @@ start_and_monitor_long_task <- function(id,
         shiny::invalidateLater(millis = update_intervall * 1000)
         # TODO (Yuliia): force_update assigned but may not be used
         force_update <- input$force_update
-        # print(date())
+        # print(get_time_stamp())
 
         log <- NULL
         if (!is.null(log_path)) log <- read_log(log_path)
@@ -276,7 +271,7 @@ start_and_monitor_long_task <- function(id,
             data_columns <- c("train", "validation")
           }
           y_max <- max(plot_data[data_columns])
-          y_min <- 0
+          y_min <- max(min(plot_data[data_columns]), 0)
           # TODO (Yuliia): .data has no visible binding
           plot <- ggplot2::ggplot(data = plot_data) +
             ggplot2::geom_line(ggplot2::aes(x = .data$epoch, y = .data$train, color = "train")) +

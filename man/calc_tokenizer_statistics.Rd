@@ -4,7 +4,11 @@
 \alias{calc_tokenizer_statistics}
 \title{Estimate tokenizer statistics}
 \usage{
-calc_tokenizer_statistics(dataset, step = "creation")
+calc_tokenizer_statistics(
+  dataset,
+  step = "creation",
+  statistics_max_tokens_length = 512L
+)
 }
 \arguments{
 \item{dataset}{Object of class datasets.arrow_dataset.Dataset. The data set must contain a column \code{"length"}
@@ -18,6 +22,8 @@ sequence.}
 \item \code{"fine_tuning"} for all following trainings of the transformer.
 \item \code{"training"} for a training run of the transformer.
 }}
+
+\item{statistics_max_tokens_length}{\code{int} Maximum sequence length for calculating the statistics. Allowed values: \verb{20 <= x <= 8192}}
 }
 \value{
 Returns a \code{list} with the following entries:

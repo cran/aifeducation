@@ -29,8 +29,8 @@
 //'an array for use with keras.
 //'
 //'@param matrix \code{matrix} containing the sequential data.
-//'@param times \code{size_t} Number of sequences.
-//'@param features \code{size_t} Number of features within each sequence.
+//'@param times \code{uword} Number of sequences.
+//'@param features \code{uword} Number of features within each sequence.
 //'@return Returns an array. The first dimension corresponds to the cases,
 //'the second to the times, and the third to the features.
 //'
@@ -40,12 +40,12 @@
 //'@export
 // [[Rcpp::export]]
 arma::cube matrix_to_array_c(arma::mat matrix,
-                             size_t times,
-                             size_t features){
-  size_t i=0;
-  size_t j=0;
-  size_t f=0;
-  size_t index=0;
+                             arma::uword times,
+                             arma::uword features){
+  arma::uword i=0;
+  arma::uword j=0;
+  arma::uword f=0;
+  arma::uword index=0;
 
   //cube(n_rows, n_cols, n_slices)
   arma::cube output_array(matrix.n_rows,
@@ -68,8 +68,6 @@ arma::cube matrix_to_array_c(arma::mat matrix,
 }
 
 
-
-
 //' Transform tensor to matrix
 //'
 //' Function written in C++ for transformation the tensor (with size batch x times x features) to the matrix (with
@@ -84,21 +82,20 @@ arma::cube matrix_to_array_c(arma::mat matrix,
 //' @export
 // [[Rcpp::export]]
 arma::mat tensor_to_matrix_c(arma::cube tensor,
-                             size_t times,
-                             size_t features)
+                             arma::uword times,
+                             arma::uword features)
 {
   arma::mat output_matrix(tensor.n_rows,
                           times * features);
 
-  for(size_t batch_i = 0; batch_i < tensor.n_rows; ++batch_i)
+  for(arma::uword batch_i = 0; batch_i < tensor.n_rows; ++batch_i)
   {
-    for(size_t time_i = 0; time_i < times; ++time_i)
+    for(arma::uword time_i = 0; time_i < times; ++time_i)
     {
-      size_t index = time_i * features;
+      arma::uword index = time_i * features;
 
-      for(size_t feature_i = 0; feature_i < features; ++feature_i)
+      for(arma::uword feature_i = 0; feature_i < features; ++feature_i)
         output_matrix(batch_i, index + feature_i) = tensor(batch_i, time_i, feature_i);
-
     }
   }
   return output_matrix;

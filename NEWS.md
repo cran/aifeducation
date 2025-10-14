@@ -4,9 +4,54 @@ editor_options:
     wrap: 72
 ---
 
-# aifeducation 1.1.1
+# aifeducation 1.1.2
 
-- Fixed a bug in function to_categorical_c to solve an error in UBSAN
+**Major Changes**
+
+- Introduction of two new classes: one for tokenizers and one for base models. 
+  This allows us a more specialized implementation of new methods (e.g. for estimating FLOPS) and a unified 
+  handling for all classes in this packages (e.g. saving and loading). 
+- Re-implement DeBERTa version 2.
+- Temporally removed support for Longformer since it causes some cuda errors.
+- Intensive re-factoring of all remaining classes. Now the R6 classes uses the 
+  capabilities of R6 more stringent. The structure of all classes was unified and is now
+  more in line with object orientated programming styles.
+  Old models are updated during loading automatically to the new structure. The position
+  of some methods changed. Please refer to the documentation or vignettes for more details. 
+- Added analyses for lints and started to apply more rigorous lint analyzers to
+  improve code quality. This process is not finished yet. 
+- Added dependency to a new python library 'calflops'. Please install this package to your
+  python environment. 
+  
+**Minor Changes**
+
+- Add a parameter for controlling the log level of the 'codecarbon' sustainability tracker.
+
+**TextEmbeddingModels**
+
+- Re-implemented algorithm to embed texts. The new version has a better numerical stability and is
+  faster.
+
+**Ai for Education Studio**
+
+- Fixed bug that prevents changes in the documentation to be saved.
+- Updated Studio to the new classes and methods.
+
+**BaseModels**
+
+- Added an own implementation of the DataCollatorForWholeWordMask that uses the 
+  word_ids of PreTrainedTokenizerFast. This collator can be used with WordPieceTokenizer.
+
+**Classifiers**
+
+- Fixed a bug in TEClassifierRegular and TEClassifierParallelPrototype that could occur
+  during the preparation of the training history. Error caused the training to abort.
+- Fixed a bug that did not allow to load trained models based on prototypes.
+- Fixed a bug in calculating the mean values for precision, recall, and f1.
+
+**Documentation**
+
+- The documentation was updated to the new structure and objects. 
 
 # aifeducation 1.1.0
 

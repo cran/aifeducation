@@ -1,14 +1,14 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# aifeducation <a href="https://fberding.github.io/aifeducation/"><img src="man/figures/logo.png" alt="aifeducation website" align="right" height="120"/></a>
+# aifeducation <a href="https://fberding.github.io/aifeducation/"><img src="https://fberding.github.io/aifeducation/logo.png" alt="aifeducation website" align="right" height="120"/></a>
 
 <!-- badges: start -->
 
 **GitHub** [![Project Status: Active - The project has reached a stable,
 usable state and is being actively
 developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
-[![](https://img.shields.io/badge/devel%20version-1.1.0-green.svg)](https://github.com/fberding/aifeducation)
+[![](https://img.shields.io/badge/devel%20version-1.1.2-green.svg)](https://github.com/fberding/aifeducation)
 [![R-CMD-check](https://github.com/FBerding/aifeducation/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/FBerding/aifeducation/actions/workflows/R-CMD-check.yaml)
 [![CodeFactor](https://www.codefactor.io/repository/github/fberding/aifeducation/badge)](https://www.codefactor.io/repository/github/fberding/aifeducation)
 [![Codecov test
@@ -43,10 +43,12 @@ special conditions of the educational and social sciences.
   computational speed and allowing the use of very large data sets.
 - Uses safetensors for saving models in ‘PyTorch’.
 - Supports pre-trained language models from Hugging Face.
-- Supports ModernBERT, MPNet, BERT, RoBERTa, Longformer, and Funnel
-  Transformer for creating context-sensitive text embedding.
+- Supports ModernBERT, MPNet, BERT, RoBERTa, DeBERTa, and Funnel
+  Transformer for creating context-sensitive text embeddings.
 - Makes sharing pre-trained models very easy.
-- Integrates sustainability tracking.
+- Integrates sustainability tracking for training and inference.
+- Integrates an approach to calculate FLOPS based on model’s
+  architecture.
 - Integrates special statistical techniques for dealing with data
   structures common in the social and educational sciences.
 - Supports the classification of long text documents.
@@ -88,8 +90,8 @@ The package ships with a shiny app that serves as a graphical user
 interface.
 
 <figure>
-<img src="man/figures/home.png" style="width:100.0%"
-alt="Figure 1: Aifeducation Studio" />
+<img src="https://fberding.github.io/aifeducation/home.png"
+style="width:100.0%" alt="Figure 1: Aifeducation Studio" />
 <figcaption aria-hidden="true">Figure 1: Aifeducation
 Studio</figcaption>
 </figure>
@@ -131,9 +133,8 @@ already trained models work with future versions of this package.
 Classification tasks require the transformation of raw texts into a
 representation with numbers. For this step, *aifeducation* supports new
 approaches such as modernBERT (Warner et al. 2024), MPNet (Song et
-al. 2020), BERT (Devlin et al. 2019), RoBERTa (Liu et al. 2019),
-Funnel-Transformer (Dai et al. 2020), and Longformer (Beltagy, Peters &
-Cohan 2020).
+al. 2020), BERT (Devlin et al. 2019), RoBERTa (Liu et al. 2019), and
+Funnel-Transformer (Dai et al. 2020).
 
 *aifeducation* supports the use of pre-trained transformer models
 provided by [Hugging Face](https://huggingface.co/) and the creation of
@@ -283,9 +284,6 @@ you can find a detailed guide on how to document and share your models.
 
 ## References
 
-Beltagy, I., Peters, M. E., & Cohan, A. (2020). Longformer: The
-Long-Document Transformer. <https://doi.org/10.48550/arXiv.2004.05150>
-
 Berding, F., & Pargmann, J. (2022). Iota Reliability Concept of the
 Second Generation. Berlin: Logos. <https://doi.org/10.30819/5581>
 
@@ -338,6 +336,10 @@ Haixiang, G., Yijing, L., Shang, J., Mingyun, G., Yuanyue, H., & Bing,
 G. (2017). Learning from class-imbalanced data: Review of methods and
 applications. Expert Systems with Applications, 73, 220–239.
 <https://doi.org/10.1016/j.eswa.2016.12.035>
+
+He, P., Liu, X., Gao, J. & Chen, W. (2020). DeBERTa: Decoding-enhanced
+BERT with Disentangled Attention.
+<https://doi.org/10.48550/arXiv.2006.03654>
 
 Islam, A., Belhaouari, S. B., Rehman, A. U. & Bensmail, H. (2022).
 KNNOR: An oversampling technique for imbalanced datasets. Applied Soft
