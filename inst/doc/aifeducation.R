@@ -37,5 +37,5 @@ knitr::opts_chunk$set(
 # )
 
 ## ----include = TRUE, eval=TRUE------------------------------------------------
-aifeducation::get_recommended_py_versions()
+t(aifeducation::get_recommended_py_versions())
 
